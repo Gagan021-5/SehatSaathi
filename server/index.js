@@ -1,0 +1,41 @@
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import mongoose from 'mongoose';
+
+import chatRoutes from './routes/chatRoutes.js';
+import predictionRoutes from './routes/predictionRoutes.js';
+import prescriptionRoutes from './routes/prescriptionRoutes.js';
+import emergencyRoutes from './routes/emergencyRoutes.js';
+import hospitalRoutes from './routes/hospitalRoutes.js';
+import { geocodeHandler } from './controllers/hospitalController.js';
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+app.use(cors());
+app.use(express.json({ limit: '10mb' }));
+
+// Routes
+app.use('/api/chat', chatRoutes);
+app.use('/api/predict', predictionRoutes);
+app.use('/api/prescription', prescriptionRoutes);
+app.use('/api/emergency', emergencyRoutes);
+app.use('/api/hospitals', hospitalRoutes);
+
+// Top-level geocode endpoint
+app.get('/api/geocode', geocodeHandler);
+
+app.get('/api/health', (req, res) => res.json({ status: 'ok', service: 'SehatSaathi API' }));
+
+// MongoDB connection (optional)
+const MONGO_URI = process.env.MONGO_URI;
+if (MONGO_URI) {
+    mongoose.connect(MONGO_URI)
+        .then(() => console.log('✅ MongoDB connected'))
+        .catch(err => console.log('⚠️ MongoDB not connected:', err.message));
+}
+
+app.listen(PORT, () => {
+    console.log(`🏥 SehatSaathi API running on port ${PORT}`);
+});
