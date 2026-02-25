@@ -44,7 +44,6 @@ export const getProfile = () => api.get('/auth/profile');
 export const updateProfile = (data) => api.put('/auth/profile', data);
 
 export const predictDiabetes = (data) => api.post('/predict/diabetes', data);
-export const predictDisease = (data) => api.post('/predict/disease', data);
 export const assessRisk = (data) => api.post('/predict/risk', data);
 export const getModelInfo = () => api.get('/predict/model-info');
 export const getDiabetesHistory = () => api.get('/predict/diabetes/history');
@@ -54,17 +53,42 @@ export const sendMessage = (data) => api.post('/chat/message', data);
 export const getChatHistory = () => api.get('/chat/history');
 export const getEmergencyGuidance = (data) => api.post('/chat/emergency', data);
 
-export const uploadPrescription = (formData) =>
-    api.post('/prescription/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+export const uploadPrescription = (payload) => {
+    if (payload instanceof FormData) {
+        return api.post('/prescription/upload', payload, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+            timeout: 60000,
+        });
+    }
+
+    return api.post('/prescription/upload', payload, {
         timeout: 60000,
     });
+};
 export const getPrescriptions = () => api.get('/prescription/');
 export const getPrescription = (id) => api.get(`/prescription/${id}`);
 
 export const getHealthRecords = () => api.get('/health/');
 export const addVital = (data) => api.post('/health/vitals', data);
 export const analyzeHealth = (lang) => api.get('/health/analyze', { params: { language: lang } });
+
+export const getMedicineReminders = () => api.get('/medicines');
+export const createMedicineReminder = (data) => api.post('/medicines', data);
+export const updateMedicineReminder = (id, data) => api.put(`/medicines/${id}`, data);
+export const deleteMedicineReminder = (id) => api.delete(`/medicines/${id}`);
+export const markMedicineTaken = (id) => api.post(`/medicines/${id}/taken`);
+
+export const getFamilyMembers = () => api.get('/family/members');
+export const createFamilyMember = (data) => api.post('/family/members', data);
+export const updateFamilyMember = (id, data) => api.put(`/family/members/${id}`, data);
+export const deleteFamilyMember = (id) => api.delete(`/family/members/${id}`);
+export const getFamilyDocuments = (params) => api.get('/family/documents', { params });
+export const createFamilyDocument = (data) => api.post('/family/documents', data);
+export const deleteFamilyDocument = (id) => api.delete(`/family/documents/${id}`);
+
+export const getHealthToolResults = () => api.get('/health-tools');
+export const saveHealthToolResult = (data) => api.post('/health-tools', data);
+export const deleteHealthToolResult = (id) => api.delete(`/health-tools/${id}`);
 
 export const searchHospitals = (params) => api.get('/hospitals/nearby', { params });
 export const searchPHCHospitals = (params) => api.get('/hospitals/phc', { params });

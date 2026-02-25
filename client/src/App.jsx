@@ -1,32 +1,45 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import Sidebar from './components/common/Sidebar';
 import Navbar from './components/common/Navbar';
-import Home from './pages/Home';
-import DiabetesPage from './pages/DiabetesPage';
-import ChatPage from './pages/ChatPage';
-import PredictionPage from './pages/PredictionPage';
-import PrescriptionPage from './pages/PrescriptionPage';
-import HealthRecordsPage from './pages/HealthRecordsPage';
-import EmergencyPage from './pages/EmergencyPage';
-import HospitalsPage from './pages/HospitalsPage';
-import ProfilePage from './pages/ProfilePage';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import ForgotPassword from './components/auth/ForgotPassword';
 import LanguageOnboarding from './components/language/LanguageOnboarding';
 
+const Home = lazy(() => import('./pages/Home'));
+const DiabetesPage = lazy(() => import('./pages/DiabetesPage'));
+const ChatPage = lazy(() => import('./pages/ChatPage'));
+const PrescriptionPage = lazy(() => import('./pages/PrescriptionPage'));
+const HealthRecordsPage = lazy(() => import('./pages/HealthRecordsPage'));
+const EmergencyPage = lazy(() => import('./pages/EmergencyPage'));
+const HospitalsPage = lazy(() => import('./pages/HospitalsPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const FirstAidPage = lazy(() => import('./pages/FirstAid'));
+const MedicinesPage = lazy(() => import('./pages/Medicines'));
+const ReportsPage = lazy(() => import('./pages/Reports'));
+const FamilyVaultPage = lazy(() => import('./pages/FamilyVault'));
+const HealthToolsPage = lazy(() => import('./pages/HealthTools'));
+
+function RouteLoader() {
+  return (
+    <div className="flex h-[60vh] items-center justify-center">
+      <div className="flex flex-col items-center gap-3 rounded-[2rem] bg-white/50 p-8 backdrop-blur-md ring-1 ring-slate-200/50">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
+        <p className="text-sm font-semibold text-slate-500">Syncing Workspace...</p>
+      </div>
+    </div>
+  );
+}
+
 function ProtectedRoute({ children }) {
   const { firebaseUser, loading } = useAuth();
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-zinc-50">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin" />
-        <p className="text-zinc-500 text-sm font-medium">Loading SehatSaathi...</p>
-      </div>
+    <div className="flex h-screen w-full items-center justify-center bg-slate-50">
+      <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
     </div>
   );
   return firebaseUser ? children : <Navigate to="/login" />;
@@ -42,24 +55,41 @@ function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="app-shell relative flex min-h-screen overflow-hidden">
-      <div className="pointer-events-none absolute -top-24 -left-20 h-72 w-72 rounded-full bg-blue-400/10 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-0 right-0 h-72 w-72 rounded-full bg-teal-400/10 blur-3xl" />
+    <div className="relative flex h-screen w-full overflow-hidden bg-[#fcfdfe]">
+      {/* Dynamic Background Elements */}
+      <div className="pointer-events-none absolute inset-0 opacity-40 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:24px_24px]" />
+      <div className="pointer-events-none absolute -top-24 -left-24 h-96 w-96 rounded-full bg-blue-400/10 blur-[120px]" />
+      <div className="pointer-events-none absolute bottom-0 right-0 h-96 w-96 rounded-full bg-teal-400/10 blur-[120px]" />
+
+      {/* Sidebar Component */}
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className="flex-1 min-w-0 flex flex-col">
+
+      {/* Main Container Area */}
+      <div className="relative flex flex-1 flex-col min-w-0">
         <Navbar onMenuClick={() => setSidebarOpen(true)} />
-        <main className="relative z-10 flex-1 overflow-y-auto p-4 md:p-6">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/diabetes" element={<DiabetesPage />} />
-            <Route path="/chat" element={<ChatPage />} />
-            <Route path="/predict" element={<PredictionPage />} />
-            <Route path="/prescription" element={<PrescriptionPage />} />
-            <Route path="/health" element={<HealthRecordsPage />} />
-            <Route path="/hospitals" element={<HospitalsPage />} />
-            <Route path="/emergency" element={<EmergencyPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-          </Routes>
+        
+        {/* Scrollable Viewport */}
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 custom-scrollbar">
+          <div className="mx-auto max-w-7xl">
+            <Suspense fallback={<RouteLoader />}>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/diabetes" element={<DiabetesPage />} />
+                <Route path="/chat" element={<ChatPage />} />
+                <Route path="/prescription" element={<PrescriptionPage />} />
+                <Route path="/health" element={<HealthRecordsPage />} />
+                <Route path="/hospitals" element={<HospitalsPage />} />
+                <Route path="/emergency" element={<EmergencyPage />} />
+                <Route path="/first-aid" element={<FirstAidPage />} />
+                <Route path="/medicines" element={<MedicinesPage />} />
+                <Route path="/reports" element={<ReportsPage />} />
+                <Route path="/family-vault" element={<FamilyVaultPage />} />
+                <Route path="/health-tools" element={<HealthToolsPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Suspense>
+          </div>
         </main>
       </div>
     </div>
@@ -75,15 +105,15 @@ export default function App() {
           <Toaster
             position="top-right"
             toastOptions={{
-              duration: 4000,
+              className: 'premium-toast',
               style: {
-                borderRadius: '14px',
-                padding: '12px 16px',
-                fontSize: '14px',
-                border: '1px solid rgba(228,228,231,0.8)',
-                background: 'rgba(255,255,255,0.9)',
-                backdropFilter: 'blur(16px)',
-                boxShadow: '0 16px 32px rgba(113,113,122,0.15)',
+                borderRadius: '20px',
+                background: 'rgba(255, 255, 255, 0.9)',
+                backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(226, 232, 240, 0.8)',
+                boxShadow: '0 20px 40px -10px rgba(15, 23, 42, 0.1)',
+                color: '#0f172a',
+                padding: '16px 24px',
               },
             }}
           />
@@ -98,4 +128,3 @@ export default function App() {
     </BrowserRouter>
   );
 }
-

@@ -6,8 +6,11 @@ import 'dotenv/config';
 import authRoutes from './routes/authRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
 import emergencyRoutes from './routes/emergencyRoutes.js';
+import familyRoutes from './routes/familyRoutes.js';
 import healthRoutes from './routes/healthRoutes.js';
+import healthToolRoutes from './routes/healthToolRoutes.js';
 import hospitalRoutes from './routes/hospitalRoutes.js';
+import medicineRoutes from './routes/medicineRoutes.js';
 import predictionRoutes from './routes/predictionRoutes.js';
 import prescriptionRoutes from './routes/prescriptionRoutes.js';
 
@@ -29,6 +32,9 @@ app.use('/api/prescription', prescriptionRoutes);
 app.use('/api/emergency', emergencyRoutes);
 app.use('/api/hospitals', hospitalRoutes);
 app.use('/api/health', healthRoutes);
+app.use('/api/medicines', medicineRoutes);
+app.use('/api/family', familyRoutes);
+app.use('/api/health-tools', healthToolRoutes);
 
 app.get('/api/health-check', (_req, res) => {
     res.json({ status: 'ok', service: 'SehatSaathi API', port: PORT });

@@ -1,0 +1,197 @@
+[
+  {
+    "id": "heart-attack",
+    "title": "Heart Attack",
+    "category": "Cardiac",
+    "severity": "critical",
+    "steps": [
+      { "action": "Call 112 immediately and keep the person seated with back support.", "warning": "Do not delay emergency call even if pain seems to improve." },
+      { "action": "Loosen tight clothing and keep the person calm with slow breathing.", "warning": "Avoid walking or climbing stairs." },
+      { "action": "If conscious and not allergic, chew one aspirin (300 mg) while waiting.", "warning": "Skip aspirin if there is bleeding risk or known allergy." }
+    ],
+    "doNot": ["Do not give food or heavy drinks.", "Do not let the person drive.", "Do not leave the person alone."],
+    "callEmergency": true
+  },
+  {
+    "id": "choking",
+    "title": "Choking",
+    "category": "Airway",
+    "severity": "critical",
+    "steps": [
+      { "action": "Ask if they can cough or speak. Encourage forceful coughing if possible.", "warning": "If no sound comes out, act immediately." },
+      { "action": "Give 5 back blows between shoulder blades.", "warning": "Support chest and lean the person forward." },
+      { "action": "Give 5 abdominal thrusts and repeat cycles until object clears.", "warning": "For pregnant or obese adults, use chest thrusts instead." }
+    ],
+    "doNot": ["Do not perform blind finger sweeps.", "Do not give water during active choking."],
+    "callEmergency": true
+  },
+  {
+    "id": "snake-bite",
+    "title": "Snake Bite",
+    "category": "Bites",
+    "severity": "high",
+    "steps": [
+      { "action": "Move the person away from the snake and keep bitten limb still.", "warning": "Movement spreads venom faster." },
+      { "action": "Remove rings, bangles, or tight items near bite area.", "warning": "Swelling can start quickly." },
+      { "action": "Apply a clean, loose dressing and transport urgently.", "warning": "Keep bite level with or slightly below heart." }
+    ],
+    "doNot": ["Do not cut, suck, or ice the wound.", "Do not apply tourniquet.", "Do not try to catch the snake."],
+    "callEmergency": true
+  },
+  {
+    "id": "severe-bleeding",
+    "title": "Severe Bleeding",
+    "category": "Trauma",
+    "severity": "critical",
+    "steps": [
+      { "action": "Wear gloves if available and press firmly with clean cloth.", "warning": "Continuous direct pressure is the priority." },
+      { "action": "If soaked, add more cloth without removing old layer.", "warning": "Removing cloth may restart heavy bleeding." },
+      { "action": "Raise injured part above heart level if no fracture is suspected.", "warning": "Keep person lying down if dizzy." }
+    ],
+    "doNot": ["Do not wash deep wounds.", "Do not remove embedded objects."],
+    "callEmergency": true
+  },
+  {
+    "id": "burns",
+    "title": "Burns (Thermal)",
+    "category": "Injury",
+    "severity": "high",
+    "steps": [
+      { "action": "Cool burn under running cool water for 20 minutes.", "warning": "Start as early as possible for better tissue protection." },
+      { "action": "Cover with sterile non-stick dressing or clean cloth.", "warning": "Keep dressing loose." },
+      { "action": "Monitor for shock and pain while arranging medical help.", "warning": "Large or facial burns need urgent care." }
+    ],
+    "doNot": ["Do not use ice, toothpaste, butter, or powders.", "Do not break blisters."],
+    "callEmergency": true
+  },
+  {
+    "id": "fracture",
+    "title": "Suspected Fracture",
+    "category": "Trauma",
+    "severity": "moderate",
+    "steps": [
+      { "action": "Keep the injured part still and support in current position.", "warning": "Stabilize joints above and below the injury." },
+      { "action": "Use a splint with padding if trained.", "warning": "Splint should be snug, not tight." },
+      { "action": "Apply cold pack wrapped in cloth for 10-15 minutes.", "warning": "Avoid direct ice contact on skin." }
+    ],
+    "doNot": ["Do not force bone back in place.", "Do not allow weight-bearing on injured limb."],
+    "callEmergency": false
+  },
+  {
+    "id": "seizure",
+    "title": "Seizure",
+    "category": "Neurology",
+    "severity": "high",
+    "steps": [
+      { "action": "Clear nearby hard objects and cushion the head.", "warning": "Protect from injury only." },
+      { "action": "Turn person onto their side after jerking stops.", "warning": "Side position helps airway protection." },
+      { "action": "Time the seizure and observe breathing.", "warning": "Any seizure over 5 minutes is an emergency." }
+    ],
+    "doNot": ["Do not restrain movements.", "Do not place anything in the mouth."],
+    "callEmergency": true
+  },
+  {
+    "id": "drowning",
+    "title": "Drowning",
+    "category": "Respiratory",
+    "severity": "critical",
+    "steps": [
+      { "action": "Ensure scene safety and bring person out of water if possible.", "warning": "Do not endanger yourself." },
+      { "action": "Check responsiveness and breathing; start CPR if absent.", "warning": "Give rescue breaths early if trained." },
+      { "action": "Keep warm and monitor until emergency team arrives.", "warning": "Even recovered victims need medical evaluation." }
+    ],
+    "doNot": ["Do not delay CPR waiting for water to drain.", "Do not shake the person."],
+    "callEmergency": true
+  },
+  {
+    "id": "electric-shock",
+    "title": "Electric Shock",
+    "category": "Trauma",
+    "severity": "critical",
+    "steps": [
+      { "action": "Switch off power source before touching the person.", "warning": "Use dry non-conductive object if needed." },
+      { "action": "Check breathing and pulse, start CPR if required.", "warning": "Call emergency services immediately." },
+      { "action": "Cover visible burns with sterile dressing.", "warning": "Internal injury may be severe even with small skin burns." }
+    ],
+    "doNot": ["Do not touch victim while current may still be active.", "Do not use metal objects near source."],
+    "callEmergency": true
+  },
+  {
+    "id": "heat-stroke",
+    "title": "Heat Stroke",
+    "category": "Environmental",
+    "severity": "critical",
+    "steps": [
+      { "action": "Move person to shade or cool room immediately.", "warning": "Heat stroke can cause organ damage quickly." },
+      { "action": "Cool with wet cloth, fan, or cool water spray.", "warning": "Target neck, armpits, and groin." },
+      { "action": "If conscious, give small sips of cool water.", "warning": "Stop fluids if confused or vomiting." }
+    ],
+    "doNot": ["Do not give alcohol or caffeine.", "Do not leave person in hot environment."],
+    "callEmergency": true
+  },
+  {
+    "id": "hypothermia",
+    "title": "Hypothermia",
+    "category": "Environmental",
+    "severity": "high",
+    "steps": [
+      { "action": "Move to warm, dry shelter and remove wet clothing.", "warning": "Handle gently to avoid arrhythmias." },
+      { "action": "Warm center of body first with blankets and body heat.", "warning": "Warm chest, neck, and groin first." },
+      { "action": "Give warm sweet drinks if fully alert.", "warning": "No drinks if drowsy or confused." }
+    ],
+    "doNot": ["Do not rub limbs aggressively.", "Do not use very hot baths or heating pads directly."],
+    "callEmergency": true
+  },
+  {
+    "id": "poisoning",
+    "title": "Poisoning",
+    "category": "Toxicology",
+    "severity": "high",
+    "steps": [
+      { "action": "Identify substance and keep container or label nearby.", "warning": "Share details with emergency responder." },
+      { "action": "If inhaled, move to fresh air. If skin contact, rinse with water.", "warning": "Protect yourself during rescue." },
+      { "action": "Call poison control or emergency services immediately.", "warning": "Symptoms may be delayed." }
+    ],
+    "doNot": ["Do not induce vomiting unless advised by professionals.", "Do not give random home remedies."],
+    "callEmergency": true
+  },
+  {
+    "id": "asthma-attack",
+    "title": "Asthma Attack",
+    "category": "Respiratory",
+    "severity": "high",
+    "steps": [
+      { "action": "Help person sit upright and use reliever inhaler with spacer.", "warning": "Take one puff at a time with 4 breaths each." },
+      { "action": "Repeat reliever doses every 4 minutes as needed.", "warning": "Track total puffs and response." },
+      { "action": "If no relief or severe breathlessness, call 112.", "warning": "Blue lips or inability to speak is an emergency." }
+    ],
+    "doNot": ["Do not let person lie flat.", "Do not leave person alone during attack."],
+    "callEmergency": true
+  },
+  {
+    "id": "anaphylaxis",
+    "title": "Severe Allergic Reaction (Anaphylaxis)",
+    "category": "Allergy",
+    "severity": "critical",
+    "steps": [
+      { "action": "Use epinephrine auto-injector immediately if available.", "warning": "Inject into outer mid-thigh." },
+      { "action": "Call 112 and lay person flat with legs raised.", "warning": "If breathing is difficult, allow seated posture." },
+      { "action": "Give second epinephrine dose after 5-10 minutes if needed.", "warning": "Continue close breathing monitoring." }
+    ],
+    "doNot": ["Do not rely only on antihistamines.", "Do not delay epinephrine when symptoms are severe."],
+    "callEmergency": true
+  },
+  {
+    "id": "stroke",
+    "title": "Stroke (FAST Signs)",
+    "category": "Neurology",
+    "severity": "critical",
+    "steps": [
+      { "action": "Check FAST: Face droop, Arm weakness, Speech difficulty, Time to call 112.", "warning": "Note exact symptom start time." },
+      { "action": "Keep person safe, seated, and calm while waiting.", "warning": "Monitor breathing and consciousness." },
+      { "action": "If unconscious and breathing, place in recovery position.", "warning": "Prepare for CPR if breathing stops." }
+    ],
+    "doNot": ["Do not give food, drink, or medicines.", "Do not wait for symptoms to pass."],
+    "callEmergency": true
+  }
+]

@@ -14,6 +14,9 @@ export async function analyze(req, res) {
             result = await analyzeRx(imageBase64, language);
         } catch (err) {
             console.error('Prescription AI fallback:', err.message);
+            const message = String(err?.message || '').toLowerCase();
+            const quotaExceeded = message.includes('quota') || message.includes('too many requests') || message.includes('429');
+            const modelUnavailable = message.includes('not found') || message.includes('model');
             result = {
                 text: '',
                 medicines: [],
@@ -22,7 +25,12 @@ export async function analyze(req, res) {
                 interactions: [],
                 generic_alternatives: [],
                 dietary_advice: [],
-                summary: 'AI extraction is temporarily unavailable. Please retry in a moment.',
+                ai_error: quotaExceeded ? 'quota_exceeded' : modelUnavailable ? 'model_unavailable' : 'service_unavailable',
+                summary: quotaExceeded
+                    ? 'AI extraction is unavailable because Gemini API quota is exceeded. Please try again later or update billing/quota settings.'
+                    : modelUnavailable
+                        ? 'AI extraction is unavailable due to model configuration. Please contact support to update the AI model.'
+                        : 'AI extraction is temporarily unavailable. Please retry in a moment.',
             };
         }
         res.json(result);

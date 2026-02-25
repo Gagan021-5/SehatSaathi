@@ -1,29 +1,57 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
     Activity,
     AlertTriangle,
     Bot,
-    Brain,
     Building2,
+    Calculator,
     FileText,
+    FolderKanban,
+    HeartPulse,
     LayoutDashboard,
     LogOut,
+    Pill,
     Sparkles,
     Stethoscope,
     X,
+    ChevronRight
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
-import Card from './Card';
 
-const navItems = [
-    { path: '/', icon: LayoutDashboard, label: 'nav.dashboard' },
-    { path: '/diabetes', icon: Stethoscope, label: 'nav.diabetes' },
-    { path: '/chat', icon: Bot, label: 'nav.chat' },
-    { path: '/predict', icon: Brain, label: 'nav.predict' },
-    { path: '/prescription', icon: FileText, label: 'nav.prescription' },
-    { path: '/health', icon: Activity, label: 'nav.health' },
-    { path: '/hospitals', icon: Building2, label: 'nav.hospitals' },
+const navGroups = [
+    {
+        group: 'Overview',
+        items: [
+            { path: '/', icon: LayoutDashboard, label: 'nav.dashboard' },
+            { path: '/health', icon: Activity, label: 'nav.health' },
+        ]
+    },
+    {
+        group: 'Medical AI',
+        items: [
+            { path: '/diabetes', icon: Stethoscope, label: 'nav.diabetes' },
+            { path: '/chat', icon: Bot, label: 'nav.chat' },
+        ]
+    },
+    {
+        group: 'Care & Tools',
+        items: [
+            { path: '/first-aid', icon: HeartPulse, label: 'First Aid Guide' },
+            { path: '/medicines', icon: Pill, label: 'Medicines' },
+            { path: '/hospitals', icon: Building2, label: 'nav.hospitals' },
+            { path: '/health-tools', icon: Calculator, label: 'Health Tools' },
+        ]
+    },
+    {
+        group: 'Records',
+        items: [
+            { path: '/prescription', icon: FileText, label: 'nav.prescription' },
+            { path: '/reports', icon: FileText, label: 'Reports' },
+            { path: '/family-vault', icon: FolderKanban, label: 'Family Vault' },
+        ]
+    }
 ];
 
 export default function Sidebar({ isOpen, onClose }) {
@@ -34,104 +62,108 @@ export default function Sidebar({ isOpen, onClose }) {
 
     return (
         <>
-            {isOpen && (
-                <div
-                    className="fixed inset-0 z-40 bg-zinc-900/30 backdrop-blur-sm md:hidden"
-                    onClick={onClose}
-                />
-            )}
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[60] bg-slate-950/40 backdrop-blur-sm md:hidden"
+                        onClick={onClose}
+                    />
+                )}
+            </AnimatePresence>
+
             <aside
-                className={`fixed md:sticky top-0 left-0 z-50 h-screen w-72 border-r border-zinc-200/60 bg-white/80 backdrop-blur-xl shadow-xl shadow-zinc-200/30 transition-transform duration-300 ${
-                    isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+                className={`fixed inset-y-0 left-0 z-[70] flex h-full w-72 flex-col border-r border-slate-200/60 bg-white/80 backdrop-blur-3xl transition-transform duration-500 ease-in-out md:static md:translate-x-0 ${
+                    isOpen ? 'translate-x-0' : '-translate-x-full'
                 }`}
             >
-                <div className="h-full p-4 flex flex-col gap-4">
-                    <div className="flex items-center justify-between">
-                        <button
-                            type="button"
-                            onClick={() => {
-                                navigate('/');
-                                onClose();
-                            }}
-                            className="flex items-center gap-3 transition-all duration-300 ease-out hover:-translate-y-0.5"
-                        >
-                            <div className="h-10 w-10 rounded-2xl bg-gradient-to-r from-blue-600 to-teal-500 text-white shadow-lg shadow-blue-500/20 grid place-items-center">
-                                <Sparkles size={18} />
-                            </div>
-                            <div className="text-left">
-                                <p className="text-base font-semibold tracking-tight text-zinc-900">SehatSaathi</p>
-                                <p className="text-[11px] text-zinc-500">Medical Premium 2025</p>
-                            </div>
-                        </button>
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="md:hidden p-2 rounded-lg text-zinc-500 ring-1 ring-zinc-200/70 hover:bg-zinc-50 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg"
-                        >
-                            <X size={16} />
-                        </button>
-                    </div>
-
-                    <Card className="p-2 flex-1 overflow-y-auto">
-                        <nav className="space-y-1">
-                            {navItems.map((item) => {
-                                const Icon = item.icon;
-                                const active = location.pathname === item.path;
-                                return (
-                                    <NavLink
-                                        key={item.path}
-                                        to={item.path}
-                                        onClick={onClose}
-                                        className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-300 ease-out ${
-                                            active
-                                                ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200 shadow-lg shadow-blue-500/10'
-                                                : 'text-zinc-700 hover:bg-zinc-50 hover:-translate-y-0.5 hover:shadow-lg'
-                                        }`}
-                                    >
-                                        <Icon size={16} />
-                                        <span>{t(item.label) || item.label}</span>
-                                    </NavLink>
-                                );
-                            })}
-                        </nav>
-                    </Card>
-
+                {/* Header Section */}
+                <div className="flex h-20 items-center justify-between px-6">
                     <button
-                        type="button"
-                        onClick={() => {
-                            navigate('/emergency');
-                            onClose();
-                        }}
-                        className="rounded-xl bg-gradient-to-r from-rose-600 to-red-500 text-white px-4 py-3 text-sm font-semibold flex items-center justify-center gap-2 shadow-lg shadow-rose-500/20 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:shadow-rose-500/30 active:translate-y-0 active:scale-95"
+                        onClick={() => { navigate('/'); onClose(); }}
+                        className="group flex items-center gap-3"
                     >
-                        <AlertTriangle size={16} /> Emergency SOS
+                        <div className="relative h-10 w-10 overflow-hidden rounded-xl bg-gradient-to-br from-blue-600 to-teal-500 text-white shadow-lg grid place-items-center">
+                            <Sparkles size={18} />
+                        </div>
+                        <div className="text-left">
+                            <h1 className="text-base font-bold text-slate-900 leading-tight">SehatSaathi</h1>
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600/80">Premium</span>
+                        </div>
+                    </button>
+                    <button onClick={onClose} className="md:hidden p-2 text-slate-400">
+                        <X size={20} />
+                    </button>
+                </div>
+
+                {/* Nav Groups Section */}
+                <div className="flex-1 overflow-y-auto px-4 py-4 custom-scrollbar">
+                    {navGroups.map((group, idx) => (
+                        <div key={idx} className="mb-8">
+                            <h3 className="px-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-3">
+                                {group.group}
+                            </h3>
+                            <nav className="space-y-1">
+                                {group.items.map((item) => {
+                                    const Icon = item.icon;
+                                    const active = location.pathname === item.path;
+                                    return (
+                                        <NavLink
+                                            key={item.path}
+                                            to={item.path}
+                                            onClick={onClose}
+                                            className={`group relative flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-medium transition-all duration-300 ${
+                                                active
+                                                    ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/20'
+                                                    : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900'
+                                            }`}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <Icon size={18} className={active ? 'text-white' : 'text-slate-400 group-hover:text-blue-600'} />
+                                                <span>{t(item.label) || item.label}</span>
+                                            </div>
+                                            {!active && (
+                                                <ChevronRight size={14} className="opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0" />
+                                            )}
+                                        </NavLink>
+                                    );
+                                })}
+                            </nav>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Footer Section */}
+                <div className="mt-auto p-4 space-y-3">
+                    <button
+                        onClick={() => { navigate('/emergency'); onClose(); }}
+                        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-rose-500 py-3.5 text-sm font-bold text-white shadow-lg shadow-rose-500/20 transition-all hover:bg-rose-600 hover:shadow-rose-500/40 active:scale-95"
+                    >
+                        <AlertTriangle size={18} className="animate-pulse" />
+                        <span>Emergency SOS</span>
                     </button>
 
                     {user && (
-                        <Card className="p-3">
-                            <div className="flex items-center gap-3">
-                                <div className="h-9 w-9 rounded-full bg-gradient-to-r from-blue-600 to-teal-500 text-white text-xs font-semibold grid place-items-center">
-                                    {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || 'U'}
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <p className="text-sm font-semibold text-zinc-900 truncate">{user.name || 'User'}</p>
-                                    <p className="text-xs text-zinc-500 truncate">{user.email}</p>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={logout}
-                                    className="p-2 rounded-xl text-zinc-500 hover:bg-rose-50 hover:text-rose-600"
-                                    title="Sign out"
-                                >
-                                    <LogOut size={15} />
-                                </button>
+                        <div className="flex items-center gap-3 rounded-2xl border border-slate-200/50 bg-slate-50/50 p-3 ring-1 ring-white/50">
+                            <div className="h-10 w-10 shrink-0 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-sm">
+                                {user.name?.[0]?.toUpperCase() || 'U'}
                             </div>
-                        </Card>
+                            <div className="min-w-0 flex-1">
+                                <p className="truncate text-xs font-bold text-slate-900">{user.name || 'User'}</p>
+                                <p className="truncate text-[10px] text-slate-500">{user.email}</p>
+                            </div>
+                            <button
+                                onClick={logout}
+                                className="p-2 text-slate-400 hover:text-rose-500 transition-colors"
+                            >
+                                <LogOut size={16} />
+                            </button>
+                        </div>
                     )}
                 </div>
             </aside>
         </>
     );
 }
-
-

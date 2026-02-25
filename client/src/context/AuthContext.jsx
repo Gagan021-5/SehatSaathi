@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { auth, googleProvider } from '../config/firebase';
 import {
     onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword,
-    signInWithRedirect, getRedirectResult, signOut, sendPasswordResetEmail, updateProfile as fbUpdateProfile,
+    signInWithPopup, signInWithRedirect, getRedirectResult, signOut, sendPasswordResetEmail, updateProfile as fbUpdateProfile,
 } from 'firebase/auth';
 import api from '../services/api';
 
@@ -42,7 +42,21 @@ export function AuthProvider({ children }) {
 
     const login = (email, password) => signInWithEmailAndPassword(auth, email, password);
 
-    const loginWithGoogle = () => signInWithRedirect(auth, googleProvider);
+    const loginWithGoogle = async () => {
+        try {
+            await signInWithPopup(auth, googleProvider);
+            return 'popup';
+        } catch (error) {
+            if (
+                error?.code === 'auth/popup-blocked' ||
+                error?.code === 'auth/operation-not-supported-in-this-environment'
+            ) {
+                await signInWithRedirect(auth, googleProvider);
+                return 'redirect';
+            }
+            throw error;
+        }
+    };
 
     const register = async (email, password, name) => {
         const cred = await createUserWithEmailAndPassword(auth, email, password);

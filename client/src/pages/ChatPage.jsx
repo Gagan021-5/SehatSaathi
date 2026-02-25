@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import toast from 'react-hot-toast';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Bot, Loader2, Mic, MicOff, Send, User, Volume2 } from 'lucide-react';
+import { Bot, Loader2, Mic, MicOff, Send, User, Volume2, Sparkles, Activity } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { sendMessage, startChat } from '../services/api';
 import Card from '../components/common/Card';
@@ -112,176 +112,207 @@ export default function ChatPage() {
         window.speechSynthesis.speak(utterance);
     }
 
+    // --- Animation Variants ---
     const containerVariants = {
-        hidden: { opacity: 0, y: 15 },
-        show: {
-            opacity: 1,
-            y: 0,
-            transition: { duration: 0.4, ease: 'easeOut', staggerChildren: 0.06 },
-        },
+        hidden: { opacity: 0, y: 20 },
+        show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.8, 0.25, 1], staggerChildren: 0.1 } },
     };
 
-    const itemVariants = {
-        hidden: { opacity: 0, y: 15 },
-        show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } },
+    const messageVariants = {
+        hidden: { opacity: 0, y: 20, scale: 0.95 },
+        show: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', bounce: 0.4, duration: 0.6 } },
+    };
+
+    const typingDotVariants = {
+        hidden: { y: 0 },
+        show: { y: -5, transition: { duration: 0.4, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" } }
     };
 
     return (
-        <PageTransition className="mx-auto max-w-6xl">
-            <motion.div
-                variants={containerVariants}
-                initial="hidden"
-                animate="show"
-                className="relative grid grid-cols-1 gap-4"
-            >
-                <div className="pointer-events-none absolute -top-8 -left-10 h-40 w-40 rounded-full bg-blue-400/20 blur-3xl" />
-                <div className="pointer-events-none absolute -bottom-10 -right-10 h-44 w-44 rounded-full bg-teal-400/20 blur-3xl" />
+        <PageTransition className="mx-auto max-w-5xl px-4 py-6">
+            <motion.div variants={containerVariants} initial="hidden" animate="show" className="relative">
+                {/* Animated Ambient Background Orbs */}
+                <motion.div 
+                    animate={{ scale: [1, 1.2, 1], rotate: [0, 90, 0] }} 
+                    transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+                    className="pointer-events-none absolute -top-20 -left-20 h-72 w-72 rounded-full bg-blue-500/10 blur-[80px]" 
+                />
+                <motion.div 
+                    animate={{ scale: [1, 1.3, 1], rotate: [0, -90, 0] }} 
+                    transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+                    className="pointer-events-none absolute -bottom-20 -right-20 h-80 w-80 rounded-full bg-teal-400/10 blur-[80px]" 
+                />
 
-                <motion.div variants={itemVariants}>
-                    <Card className="relative h-[calc(100vh-10.5rem)] overflow-hidden rounded-2xl border border-zinc-200/60 bg-white/80 p-0 shadow-xl shadow-zinc-200/40 backdrop-blur-xl">
-                        <div className="flex items-center justify-between gap-3 border-b border-zinc-200/60 bg-white/70 px-5 py-4 backdrop-blur-xl md:px-6">
+                <Card className="relative h-[calc(100vh-8rem)] overflow-hidden rounded-[2rem] border border-zinc-200/50 bg-white/60 p-0 shadow-2xl shadow-zinc-200/50 backdrop-blur-2xl flex flex-col">
+                    
+                    {/* Header */}
+                    <div className="flex items-center justify-between gap-4 border-b border-zinc-200/50 bg-white/40 px-6 py-5 backdrop-blur-md z-10">
+                        <div className="flex items-center gap-4">
+                            <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-teal-500 text-white shadow-lg shadow-blue-500/30">
+                                <Bot size={22} />
+                                <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5">
+                                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
+                                    <span className="relative inline-flex h-3.5 w-3.5 rounded-full border-2 border-white bg-green-500"></span>
+                                </span>
+                            </div>
                             <div>
-                                <h1 className="text-xl tracking-tight text-zinc-900 font-semibold">AI Doctor Chat</h1>
-                                <p className="text-sm text-zinc-500 leading-relaxed">
-                                    {t('chat.subtitle') || 'Describe symptoms and receive guided responses.'}
+                                <h1 className="text-xl font-bold tracking-tight text-zinc-900">AI Medical Assistant</h1>
+                                <p className="text-sm font-medium text-zinc-500">
+                                    {t('chat.subtitle') || 'Powered by clinical intelligence'}
                                 </p>
                             </div>
-                            <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-blue-600 to-teal-500 text-white shadow-lg shadow-blue-500/20 grid place-items-center">
-                                <Bot size={18} />
-                            </div>
                         </div>
+                    </div>
 
-                        <div className="flex-1 overflow-y-auto px-5 py-5 md:px-6 md:py-6 space-y-4">
-                            {messages.length === 0 && (
+                    {/* Chat Area */}
+                    <div className="flex-1 overflow-y-auto px-4 py-6 md:px-8 space-y-6 scroll-smooth z-0">
+                        {messages.length === 0 && (
+                            <motion.div
+                                variants={messageVariants}
+                                className="flex h-full flex-col items-center justify-center text-center pb-12"
+                            >
+                                <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-blue-50 to-teal-50 shadow-inner">
+                                    <Sparkles className="h-10 w-10 text-blue-500" />
+                                </div>
+                                <h2 className="mb-2 text-2xl font-bold text-zinc-800">How are you feeling today?</h2>
+                                <p className="mb-8 max-w-md text-zinc-500">Describe your symptoms in detail, or choose from one of the common prompts below to get started.</p>
+                                
+                                <div className="flex flex-wrap justify-center gap-3 max-w-2xl">
+                                    {quickPrompts.map((prompt) => (
+                                        <button
+                                            key={prompt}
+                                            type="button"
+                                            onClick={() => handleSend(prompt)}
+                                            className="group flex items-center gap-2 rounded-full border border-zinc-200/80 bg-white/80 px-5 py-2.5 text-sm font-medium text-zinc-600 transition-all hover:-translate-y-1 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 hover:shadow-xl hover:shadow-blue-500/10 active:translate-y-0"
+                                        >
+                                            <Activity size={16} className="text-zinc-400 group-hover:text-blue-500 transition-colors" />
+                                            {prompt}
+                                        </button>
+                                    ))}
+                                </div>
+                            </motion.div>
+                        )}
+
+                        <AnimatePresence initial={false}>
+                            {messages.map((message, index) => (
                                 <motion.div
-                                    variants={itemVariants}
-                                    className="rounded-2xl border border-zinc-200/60 bg-white/80 p-5 shadow-xl shadow-zinc-200/30 backdrop-blur-xl"
+                                    key={`${message.role}-${index}`}
+                                    variants={messageVariants}
+                                    initial="hidden"
+                                    animate="show"
+                                    className={`flex gap-4 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                                 >
-                                    <p className="mb-3 text-sm text-zinc-500">Quick start prompts</p>
-                                    <div className="flex flex-wrap gap-2.5">
-                                        {quickPrompts.map((prompt) => (
-                                            <button
-                                                key={prompt}
-                                                type="button"
-                                                onClick={() => handleSend(prompt)}
-                                                className="rounded-lg border border-zinc-200/70 bg-white/90 px-3.5 py-2 text-xs font-medium text-zinc-700 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:shadow-zinc-200/40 active:translate-y-0 active:scale-95"
-                                            >
-                                                {prompt}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </motion.div>
-                            )}
-
-                            <AnimatePresence initial={false}>
-                                {messages.map((message, index) => (
-                                    <motion.div
-                                        key={`${message.role}-${index}`}
-                                        initial={{ opacity: 0, y: 15 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ duration: 0.32, ease: 'easeOut' }}
-                                        className={`flex gap-2.5 ${
-                                            message.role === 'user' ? 'justify-end' : 'justify-start'
+                                    {message.role === 'assistant' && (
+                                        <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-teal-500 text-white shadow-md shadow-blue-500/20">
+                                            <Bot size={18} />
+                                        </div>
+                                    )}
+                                    
+                                    <div
+                                        className={`group relative max-w-[80%] rounded-[1.5rem] px-6 py-4 text-[15px] leading-relaxed shadow-sm transition-all hover:shadow-md ${
+                                            message.role === 'user'
+                                                ? 'rounded-tr-sm bg-gradient-to-br from-blue-600 to-teal-500 text-white shadow-blue-500/20'
+                                                : 'rounded-tl-sm border border-zinc-200/50 bg-white/90 text-zinc-800 shadow-zinc-200/50 backdrop-blur-md'
                                         }`}
                                     >
-                                        {message.role === 'assistant' && (
-                                            <div className="h-8 w-8 shrink-0 rounded-lg bg-gradient-to-br from-blue-600 to-teal-500 text-white shadow-lg shadow-blue-500/20 grid place-items-center">
-                                                <Bot size={14} />
-                                            </div>
-                                        )}
-                                        <div
-                                            className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm border ${
-                                                message.role === 'user'
-                                                    ? 'bg-gradient-to-r from-blue-600 to-teal-500 text-white border-blue-500/30 shadow-lg shadow-blue-500/20'
-                                                    : 'border-zinc-200/60 bg-white/85 text-zinc-700 shadow-xl shadow-zinc-200/30 backdrop-blur-xl'
-                                            }`}
-                                        >
-                                            {message.role === 'assistant' ? (
-                                                <div>
-                                                    <div className="leading-relaxed">
-                                                        <ReactMarkdown>{message.content}</ReactMarkdown>
-                                                    </div>
+                                        {message.role === 'assistant' ? (
+                                            <div>
+                                                <div className="prose prose-zinc prose-sm max-w-none">
+                                                    <ReactMarkdown>{message.content}</ReactMarkdown>
+                                                </div>
+                                                <div className="mt-3 flex items-center gap-2 border-t border-zinc-200/50 pt-3 opacity-0 transition-opacity group-hover:opacity-100">
                                                     <button
                                                         type="button"
                                                         onClick={() => speak(message.content)}
-                                                        className="mt-2 inline-flex items-center gap-1 rounded-lg border border-zinc-200/60 bg-white/90 px-2.5 py-1.5 text-xs text-blue-600 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/10 active:translate-y-0 active:scale-95"
+                                                        className="flex items-center gap-1.5 rounded-lg text-xs font-semibold text-blue-600 hover:text-blue-700 active:scale-95"
                                                     >
-                                                        <Volume2 size={12} /> Listen
+                                                        <Volume2 size={14} /> Read aloud
                                                     </button>
                                                 </div>
-                                            ) : (
-                                                <p className="leading-relaxed">{message.content}</p>
-                                            )}
-                                        </div>
-                                        {message.role === 'user' && (
-                                            <div className="h-8 w-8 shrink-0 rounded-lg bg-zinc-900 text-white shadow-lg shadow-zinc-400/20 grid place-items-center">
-                                                <User size={14} />
                                             </div>
+                                        ) : (
+                                            <p>{message.content}</p>
                                         )}
-                                    </motion.div>
-                                ))}
-                            </AnimatePresence>
+                                    </div>
 
-                            {loading && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 15 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.32, ease: 'easeOut' }}
-                                    className="inline-flex items-center gap-2 rounded-xl border border-zinc-200/60 bg-white/85 px-3 py-2 text-sm text-zinc-500 shadow-xl shadow-zinc-200/30 backdrop-blur-xl"
-                                >
-                                    <Loader2 size={15} className="animate-spin" /> Generating response...
+                                    {message.role === 'user' && (
+                                        <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-zinc-900 text-white shadow-md shadow-zinc-900/20">
+                                            <User size={18} />
+                                        </div>
+                                    )}
                                 </motion.div>
-                            )}
-                            <div ref={chatEndRef} />
-                        </div>
+                            ))}
+                        </AnimatePresence>
 
+                        {loading && (
+                            <motion.div
+                                variants={messageVariants}
+                                initial="hidden"
+                                animate="show"
+                                className="flex gap-4 justify-start"
+                            >
+                                <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-teal-500 text-white shadow-md shadow-blue-500/20">
+                                    <Bot size={18} />
+                                </div>
+                                <div className="flex items-center gap-1.5 rounded-[1.5rem] rounded-tl-sm border border-zinc-200/50 bg-white/90 px-6 py-5 shadow-sm backdrop-blur-md">
+                                    <motion.span variants={typingDotVariants} className="h-2 w-2 rounded-full bg-zinc-400" />
+                                    <motion.span variants={typingDotVariants} transition={{ delay: 0.1 }} className="h-2 w-2 rounded-full bg-zinc-400" />
+                                    <motion.span variants={typingDotVariants} transition={{ delay: 0.2 }} className="h-2 w-2 rounded-full bg-zinc-400" />
+                                </div>
+                            </motion.div>
+                        )}
+                        <div ref={chatEndRef} className="h-4" />
+                    </div>
+
+                    {/* Input Area */}
+                    <div className="border-t border-zinc-200/50 bg-white/40 p-4 md:px-6 md:py-5 backdrop-blur-md z-10">
                         <form
                             onSubmit={(event) => {
                                 event.preventDefault();
                                 handleSend();
                             }}
-                            className="border-t border-zinc-200/60 bg-white/70 px-5 py-4 backdrop-blur-xl md:px-6"
+                            className="relative flex items-end gap-3 rounded-[1.5rem] bg-white p-2 shadow-lg shadow-zinc-200/50 ring-1 ring-zinc-200/60 focus-within:ring-2 focus-within:ring-blue-500/50 transition-all"
                         >
-                            <div className="flex items-end gap-2.5">
-                                <textarea
-                                    rows={2}
-                                    value={input}
-                                    onChange={(event) => setInput(event.target.value)}
-                                    placeholder={t('chat.placeholder') || 'Type your message'}
-                                    className="flex-1 resize-none rounded-xl border border-zinc-200/70 bg-white/90 px-4 py-3 text-sm text-zinc-800 transition-all duration-300 ease-out focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10"
-                                    onKeyDown={(event) => {
-                                        if (event.key === 'Enter' && !event.shiftKey) {
-                                            event.preventDefault();
-                                            handleSend();
-                                        }
-                                    }}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={toggleMic}
-                                    className={`h-11 w-11 rounded-lg grid place-items-center transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-95 ${
-                                        listening
-                                            ? 'border border-rose-200 bg-rose-50 text-rose-600 shadow-lg shadow-rose-500/10'
-                                            : 'border border-zinc-200/70 bg-white/90 text-zinc-500 shadow-lg shadow-zinc-200/30'
-                                    }`}
-                                >
-                                    {listening ? <MicOff size={17} /> : <Mic size={17} />}
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={loading || !input.trim()}
-                                    className="h-11 w-11 rounded-lg bg-gradient-to-r from-blue-600 to-teal-500 text-white shadow-lg shadow-blue-500/20 grid place-items-center transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/30 active:translate-y-0 active:scale-95 disabled:opacity-50 disabled:hover:translate-y-0"
-                                >
-                                    {loading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-                                </button>
-                            </div>
+                            <button
+                                type="button"
+                                onClick={toggleMic}
+                                className={`ml-1 mb-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
+                                    listening
+                                        ? 'bg-rose-100 text-rose-600 shadow-inner shadow-rose-200 animate-pulse'
+                                        : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-700'
+                                }`}
+                            >
+                                {listening ? <MicOff size={20} /> : <Mic size={20} />}
+                            </button>
+                            
+                            <textarea
+                                rows={Math.min(3, input.split('\n').length || 1)}
+                                value={input}
+                                onChange={(event) => setInput(event.target.value)}
+                                placeholder={t('chat.placeholder') || 'Describe your symptoms...'}
+                                className="my-auto max-h-32 w-full resize-none bg-transparent py-3 px-2 text-[15px] text-zinc-800 placeholder:text-zinc-400 focus:outline-none"
+                                onKeyDown={(event) => {
+                                    if (event.key === 'Enter' && !event.shiftKey) {
+                                        event.preventDefault();
+                                        handleSend();
+                                    }
+                                }}
+                            />
+                            
+                            <button
+                                type="submit"
+                                disabled={loading || !input.trim()}
+                                className="mb-1 mr-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-white shadow-md transition-all duration-300 hover:scale-105 hover:bg-zinc-800 hover:shadow-zinc-900/30 active:scale-95 disabled:opacity-40 disabled:hover:scale-100 disabled:hover:bg-zinc-900"
+                            >
+                                {loading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} className="ml-0.5" />}
+                            </button>
                         </form>
-                    </Card>
-                </motion.div>
+                        <p className="mt-3 text-center text-xs text-zinc-400">
+                            AI-generated advice is for informational purposes only and does not replace professional medical consultation.
+                        </p>
+                    </div>
+                </Card>
             </motion.div>
         </PageTransition>
     );
 }
-
-
-
