@@ -1,0 +1,13 @@
+{
+  "name": "praxis",
+  "private": true,
+  "scripts": {
+    "server": "npm run dev --prefix server",
+    "client": "npm run dev --prefix client",
+    "ml": "python ml-service/app.py",
+    "dev": "concurrently \"npm run server\" \"npm run client\" \"npm run ml\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

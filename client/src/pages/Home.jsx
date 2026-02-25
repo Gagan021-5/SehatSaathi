@@ -1,113 +1,174 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { getModelInfo } from '../services/api';
+import { motion } from 'framer-motion';
 import {
-    Stethoscope, Bot, Brain, FileText, Activity, Building2,
-    ArrowRight, Sparkles, TrendingUp, BarChart3, Shield,
+    Activity,
+    ArrowRight,
+    Bot,
+    Brain,
+    Building2,
+    FileText,
+    HeartPulse,
+    ShieldCheck,
+    Stethoscope,
 } from 'lucide-react';
+import { getModelInfo, mlApi } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import Card from '../components/common/Card';
+import PageTransition from '../components/common/PageTransition';
+import ServiceOfflineBanner from '../components/common/ServiceOfflineBanner';
 
-const features = [
-    { path: '/diabetes', icon: Stethoscope, title: 'Diabetes Check', desc: 'AI-powered diabetes risk assessment', color: 'from-blue-500 to-blue-600', badge: 'NEW' },
-    { path: '/chat', icon: Bot, title: 'AI Doctor', desc: 'Chat with AI in your language', color: 'from-teal-500 to-emerald-600' },
-    { path: '/predict', icon: Brain, title: 'Symptom Checker', desc: 'ML-powered disease prediction', color: 'from-purple-500 to-violet-600' },
-    { path: '/prescription', icon: FileText, title: 'Prescription Scanner', desc: 'Upload & analyze prescriptions', color: 'from-orange-500 to-amber-600' },
-    { path: '/health', icon: Activity, title: 'Health Records', desc: 'Track your vitals & trends', color: 'from-pink-500 to-rose-600' },
-    { path: '/hospitals', icon: Building2, title: 'Find Hospitals', desc: 'Locate nearby health centers', color: 'from-cyan-500 to-sky-600' },
+const quickActions = [
+    { path: '/diabetes', title: 'Diabetes Assessment', subtitle: 'ML screening + AI explanation', icon: Stethoscope },
+    { path: '/chat', title: 'AI Doctor Chat', subtitle: 'Multilingual clinical guidance', icon: Bot },
+    { path: '/predict', title: 'Symptom Checker', subtitle: 'Top possible conditions ranked', icon: Brain },
+    { path: '/prescription', title: 'Prescription Scan', subtitle: 'Extract medicines and interactions', icon: FileText },
+    { path: '/health', title: 'Health Records', subtitle: 'Track trends over time', icon: Activity },
+    { path: '/hospitals', title: 'Nearby Hospitals', subtitle: 'Map + distance + contact actions', icon: Building2 },
 ];
 
 export default function Home() {
-    const { user } = useAuth();
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [models, setModels] = useState(null);
+    const [serverError, setServerError] = useState('');
 
     useEffect(() => {
-        getModelInfo().then(r => setModels(r.data)).catch(() => { });
+        let mounted = true;
+        async function loadDashboardData() {
+            try {
+                const [modelResponse, mlHealth] = await Promise.all([
+                    getModelInfo(),
+                    mlApi.get('/health'),
+                ]);
+                if (!mounted) return;
+                setModels(modelResponse.data);
+                if (mlHealth.data?.status !== 'ok') {
+                    setServerError('Some model services are not fully healthy right now. Results may be delayed.');
+                }
+            } catch {
+                if (mounted) {
+                    setServerError('Service Offline: unable to load dashboard model data right now.');
+                }
+            }
+        }
+        loadDashboardData();
+        return () => {
+            mounted = false;
+        };
     }, []);
 
-    const firstName = user?.name?.split(' ')[0] || 'there';
+    const firstName = useMemo(() => user?.name?.split(' ')[0] || 'there', [user?.name]);
+    const listTransition = { duration: 0.4, ease: 'easeOut' };
 
     return (
-        <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
-            {/* Hero */}
-            <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-teal-600 rounded-2xl p-6 md:p-8 text-white animate-fadeInUp">
-                <div className="flex items-start justify-between flex-wrap gap-4">
+        <PageTransition className="mx-auto max-w-7xl space-y-5">
+            {serverError && <ServiceOfflineBanner message={serverError} />}
+
+            <Card className="p-6 md:p-8 bg-gradient-to-br from-zinc-900 via-blue-900 to-teal-700 text-white border-transparent shadow-xl shadow-blue-500/20">
+                <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
                     <div>
-                        <p className="text-blue-100 text-sm mb-1">Welcome back,</p>
-                        <h1 className="text-2xl md:text-3xl font-bold mb-2">Hi, {firstName}! 👋</h1>
-                        <p className="text-blue-100 text-sm md:text-base max-w-lg">Your AI-powered health companion. Get instant medical insights, track your vitals, and access healthcare in 8 Indian languages.</p>
-                        <button onClick={() => navigate('/diabetes')}
-                            className="mt-4 px-6 py-2.5 bg-white text-blue-700 font-semibold rounded-xl text-sm hover:bg-blue-50 transition-all flex items-center gap-2 shadow-lg">
-                            <Stethoscope size={18} /> Try Diabetes Assessment <ArrowRight size={16} />
-                        </button>
+                        <p className="text-sm text-blue-100">Welcome back, {firstName}</p>
+                        <h1 className="mt-1 text-3xl font-semibold tracking-tight text-white">
+                            Medical Premium 2025 Dashboard
+                        </h1>
+                        <p className="mt-2 max-w-2xl text-sm text-blue-100 leading-relaxed">
+                            AI-powered diagnostics, emergency support, records tracking, and hospital discovery in one
+                            integrated workspace.
+                        </p>
                     </div>
-                    <div className="hidden md:flex items-center gap-3">
-                        <div className="w-20 h-20 bg-white/10 rounded-2xl flex items-center justify-center animate-float">
-                            <Sparkles size={36} className="text-white/80" />
-                        </div>
-                    </div>
+                    <button
+                        type="button"
+                        onClick={() => navigate('/diabetes')}
+                        className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-3 text-sm font-semibold text-blue-700 shadow-lg shadow-zinc-900/20 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-95"
+                    >
+                        <Stethoscope size={16} /> Start Assessment <ArrowRight size={16} />
+                    </button>
                 </div>
-            </div>
+            </Card>
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fadeInUp delay-1">
-                {[
-                    { label: 'AI Models', value: '3', icon: BarChart3, color: 'text-blue-600 bg-blue-50' },
-                    { label: 'Languages', value: '8', icon: Sparkles, color: 'text-teal-600 bg-teal-50' },
-                    { label: 'Available', value: '24/7', icon: Shield, color: 'text-purple-600 bg-purple-50' },
-                    { label: 'ML Powered', value: '97%', icon: TrendingUp, color: 'text-orange-600 bg-orange-50', sub: 'accuracy' },
-                ].map((s, i) => (
-                    <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-4 hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] transition-all">
-                        <div className={`w-10 h-10 rounded-xl ${s.color} flex items-center justify-center mb-3`}>
-                            <s.icon size={20} />
-                        </div>
-                        <p className="text-2xl font-bold text-gray-900">{s.value}</p>
-                        <p className="text-xs text-gray-500">{s.label}{s.sub ? ` ${s.sub}` : ''}</p>
-                    </div>
-                ))}
-            </div>
-
-            {/* Features Grid */}
-            <div>
-                <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {features.map((f, i) => (
-                        <button key={f.path} onClick={() => navigate(f.path)}
-                            className={`relative text-left bg-white rounded-2xl border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 transition-all duration-300 group animate-fadeInUp delay-${i + 1}`}>
-                            <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${f.color} flex items-center justify-center text-white mb-3 group-hover:scale-110 transition-transform`}>
-                                <f.icon size={22} />
-                            </div>
-                            <h3 className="font-bold text-gray-900 mb-1">{f.title}</h3>
-                            <p className="text-xs text-gray-500">{f.desc}</p>
-                            <ArrowRight size={16} className="absolute top-5 right-5 text-gray-300 group-hover:text-gray-500 transition-colors" />
-                            {f.badge && (
-                                <span className="absolute top-4 right-12 px-2 py-0.5 text-[10px] font-bold bg-gradient-to-r from-blue-600 to-teal-500 text-white rounded-full">{f.badge}</span>
-                            )}
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-            {/* Model Transparency */}
-            {models && (
-                <div className="animate-fadeInUp">
-                    <h2 className="text-lg font-bold text-gray-900 mb-4">🤖 AI Model Transparency</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {Object.entries(models).map(([name, info]) => (
-                            <div key={name} className="bg-white rounded-2xl border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-5">
-                                <h4 className="font-bold text-gray-900 capitalize mb-3">{name} Model</h4>
-                                <div className="space-y-2">
-                                    <div className="flex justify-between text-sm"><span className="text-gray-500">Accuracy</span><span className="font-bold text-green-600">{(info.accuracy * 100).toFixed(1)}%</span></div>
-                                    <div className="h-2 bg-gray-100 rounded-full"><div className="h-full bg-green-500 rounded-full" style={{ width: `${info.accuracy * 100}%` }} /></div>
-                                    <div className="flex justify-between text-sm"><span className="text-gray-500">F1 Score</span><span className="font-bold text-blue-600">{(info.f1_score * 100).toFixed(1)}%</span></div>
-                                    <div className="h-2 bg-gray-100 rounded-full"><div className="h-full bg-blue-500 rounded-full" style={{ width: `${info.f1_score * 100}%` }} /></div>
-                                    {info.dataset_size && <p className="text-xs text-gray-400 mt-1">Trained on {info.dataset_size.toLocaleString()} samples</p>}
+            <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                {quickActions.map((item, index) => {
+                    const Icon = item.icon;
+                    return (
+                        <motion.div
+                            key={item.path}
+                            initial={{ opacity: 0, y: 15 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ ...listTransition, delay: index * 0.05 }}
+                        >
+                            <Card
+                                as="button"
+                                type="button"
+                                onClick={() => navigate(item.path)}
+                                className="p-5 text-left"
+                            >
+                                <div className="h-11 w-11 rounded-xl bg-gradient-to-r from-blue-600 to-teal-500 text-white shadow-lg shadow-blue-500/20 grid place-items-center">
+                                    <Icon size={18} />
                                 </div>
-                            </div>
+                                <h2 className="mt-4 text-base font-semibold tracking-tight text-zinc-900">{item.title}</h2>
+                                <p className="mt-1 text-sm text-zinc-500 leading-relaxed">{item.subtitle}</p>
+                            </Card>
+                        </motion.div>
+                    );
+                })}
+            </section>
+
+            <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card className="p-5">
+                    <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 grid place-items-center">
+                        <ShieldCheck size={18} />
+                    </div>
+                    <h3 className="mt-3 text-base font-semibold tracking-tight text-zinc-900">Clinical Reliability</h3>
+                    <p className="mt-1 text-sm text-zinc-500 leading-relaxed">
+                        Model outputs are explained before recommendation delivery.
+                    </p>
+                </Card>
+                <Card className="p-5">
+                    <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 grid place-items-center">
+                        <HeartPulse size={18} />
+                    </div>
+                    <h3 className="mt-3 text-base font-semibold tracking-tight text-zinc-900">Patient-Centric</h3>
+                    <p className="mt-1 text-sm text-zinc-500 leading-relaxed">
+                        Designed for quick actions and clear language in urgent and routine care.
+                    </p>
+                </Card>
+                <Card className="p-5">
+                    <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 grid place-items-center">
+                        <Activity size={18} />
+                    </div>
+                    <h3 className="mt-3 text-base font-semibold tracking-tight text-zinc-900">Connected Stack</h3>
+                    <p className="mt-1 text-sm text-zinc-500 leading-relaxed">
+                        React frontend, Node API, ML microservice, and Gemini assistant in one flow.
+                    </p>
+                </Card>
+            </section>
+
+            {models && (
+                <section>
+                    <h2 className="text-lg font-semibold tracking-tight text-zinc-900 mb-3">Model Transparency</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {Object.entries(models).map(([name, info], index) => (
+                            <motion.div
+                                key={name}
+                                initial={{ opacity: 0, y: 15 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ ...listTransition, delay: index * 0.05 }}
+                            >
+                                <Card className="p-5">
+                                    <h3 className="text-base font-semibold tracking-tight text-zinc-900 capitalize">{name}</h3>
+                                    <p className="mt-2 text-sm text-zinc-500">Accuracy: {((info?.accuracy || 0) * 100).toFixed(1)}%</p>
+                                    <p className="text-sm text-zinc-500">F1 Score: {((info?.f1_score || 0) * 100).toFixed(1)}%</p>
+                                {info?.dataset_size && (
+                                    <p className="text-sm text-zinc-500">Dataset Size: {info.dataset_size.toLocaleString()}</p>
+                                )}
+                                </Card>
+                            </motion.div>
                         ))}
                     </div>
-                </div>
+                </section>
             )}
-        </div>
+        </PageTransition>
     );
 }
+

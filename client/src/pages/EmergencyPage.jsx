@@ -1,22 +1,34 @@
 import { useState } from 'react';
+import toast from 'react-hot-toast';
+import { motion } from 'framer-motion';
+import {
+    AlertTriangle,
+    Loader2,
+    Mic,
+    MicOff,
+    Phone,
+    Siren,
+    Volume2,
+} from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { getEmergencyGuidance } from '../services/api';
-import toast from 'react-hot-toast';
-import { AlertTriangle, Phone, Loader2, Mic, MicOff, Volume2 } from 'lucide-react';
+import Card from '../components/common/Card';
+import PageTransition from '../components/common/PageTransition';
 
-const EMERGENCIES = [
-    { type: 'Heart Attack', emoji: '💔', color: 'from-red-500 to-rose-600' },
-    { type: 'Choking', emoji: '😰', color: 'from-orange-500 to-amber-600' },
-    { type: 'Severe Bleeding', emoji: '🩸', color: 'from-red-600 to-red-700' },
-    { type: 'Burns', emoji: '🔥', color: 'from-yellow-500 to-orange-600' },
-    { type: 'Seizure', emoji: '⚡', color: 'from-purple-500 to-violet-600' },
-    { type: 'Allergic Reaction', emoji: '🤧', color: 'from-pink-500 to-rose-600' },
-    { type: 'Fracture', emoji: '🦴', color: 'from-blue-500 to-indigo-600' },
-    { type: 'Drowning', emoji: '🌊', color: 'from-cyan-500 to-blue-600' },
+const emergencies = [
+    'Heart Attack',
+    'Choking',
+    'Severe Bleeding',
+    'Burns',
+    'Seizure',
+    'Allergic Reaction',
+    'Fracture',
+    'Drowning',
 ];
 
 export default function EmergencyPage() {
     const { currentLanguage } = useLanguage();
+
     const [result, setResult] = useState(null);
     const [loading, setLoading] = useState(false);
     const [selectedType, setSelectedType] = useState('');
@@ -24,33 +36,35 @@ export default function EmergencyPage() {
     const [listening, setListening] = useState(false);
 
     async function handleEmergency(situation) {
-        setLoading(true); setResult(null); setSelectedType(situation);
+        setSelectedType(situation);
+        setLoading(true);
+        setResult(null);
         try {
             const { data } = await getEmergencyGuidance({ situation, language: currentLanguage.code });
             setResult(data);
-            // Auto-read steps
-            const steps = data.steps || data.result?.steps || [];
-            if (steps.length) {
-                const text = steps.join('. ');
-                const u = new SpeechSynthesisUtterance(text);
-                u.lang = currentLanguage.speechCode || 'en-IN';
-                u.rate = 0.9;
-                window.speechSynthesis.speak(u);
-            }
-        } catch { toast.error('Failed to get guidance'); }
-        setLoading(false);
+        } catch {
+            toast.error('Unable to fetch emergency guidance right now.');
+        } finally {
+            setLoading(false);
+        }
     }
 
     function toggleMic() {
         if (listening) return;
-        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SR) { toast.error('Speech not supported'); return; }
-        const r = new SR();
-        r.lang = currentLanguage.speechCode || 'en-IN';
-        r.onresult = (e) => { setCustomDesc(e.results[0][0].transcript); setListening(false); };
-        r.onerror = () => setListening(false);
-        r.onend = () => setListening(false);
-        r.start();
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            toast.error('Speech recognition is not supported in this browser.');
+            return;
+        }
+        const recognizer = new SpeechRecognition();
+        recognizer.lang = currentLanguage.speechCode || 'en-IN';
+        recognizer.onresult = (event) => {
+            setCustomDesc(event.results[0][0].transcript || '');
+            setListening(false);
+        };
+        recognizer.onerror = () => setListening(false);
+        recognizer.onend = () => setListening(false);
+        recognizer.start();
         setListening(true);
     }
 
@@ -59,95 +73,155 @@ export default function EmergencyPage() {
     const whileWaiting = result?.while_waiting || result?.result?.while_waiting || [];
 
     return (
-        <div className="p-4 md:p-6 max-w-5xl mx-auto">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-red-500 to-rose-600 rounded-2xl p-6 mb-6 animate-fadeInUp border-2 border-red-300 animate-pulse" style={{ animationDuration: '3s' }}>
-                <div className="flex items-center gap-3 mb-4">
-                    <AlertTriangle size={32} className="text-white" />
-                    <h1 className="text-2xl font-bold text-white">Emergency SOS</h1>
+        <PageTransition className="mx-auto max-w-5xl space-y-4">
+            <Card className="p-6 border-rose-200 bg-gradient-to-r from-rose-50 to-red-50">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                        <div className="h-12 w-12 rounded-2xl bg-gradient-to-r from-rose-600 to-red-500 text-white shadow-lg shadow-rose-500/20 grid place-items-center">
+                            <Siren size={20} />
+                        </div>
+                        <div>
+                            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Emergency SOS</h1>
+                            <p className="text-sm text-zinc-500 leading-relaxed">
+                                Immediate first-aid guidance while emergency help is on the way.
+                            </p>
+                        </div>
+                    </div>
+                    <a
+                        href="tel:112"
+                        className="rounded-lg bg-gradient-to-r from-rose-600 to-red-500 px-4 py-3 text-sm font-semibold text-white inline-flex items-center gap-2 shadow-lg shadow-rose-500/20 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:shadow-rose-500/30 active:translate-y-0 active:scale-95"
+                    >
+                        <Phone size={16} /> Call 112
+                    </a>
                 </div>
-                <a href="tel:112"
-                    className="inline-flex items-center gap-3 px-8 py-4 bg-white text-red-600 font-bold text-lg rounded-2xl shadow-xl hover:shadow-2xl hover:scale-105 transition-all animate-pulseGlow">
-                    <Phone size={24} /> 📞 Call 112 Now
-                </a>
-            </div>
+            </Card>
 
-            {/* Emergency Types */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-                {EMERGENCIES.map((em, i) => (
-                    <button key={em.type} onClick={() => handleEmergency(em.type)}
-                        disabled={loading}
-                        className={`p-4 rounded-2xl bg-gradient-to-br ${em.color} text-white font-semibold text-sm text-center hover:scale-105 hover:shadow-lg transition-all animate-fadeInUp delay-${i + 1}`}>
-                        <span className="text-3xl block mb-2">{em.emoji}</span>
-                        {em.type}
-                    </button>
-                ))}
-            </div>
+            <Card className="p-5">
+                <h2 className="text-base font-semibold tracking-tight text-zinc-900 mb-3">Emergency Types</h2>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    {emergencies.map((item, index) => (
+                        <motion.button
+                            type="button"
+                            key={item}
+                            onClick={() => handleEmergency(item)}
+                            disabled={loading}
+                            initial={{ opacity: 0, y: 15 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.35, ease: 'easeOut', delay: index * 0.05 }}
+                            className="rounded-lg border border-zinc-200/70 bg-white/90 px-3 py-2 text-sm text-zinc-700 shadow-lg shadow-zinc-200/20 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-white hover:shadow-lg hover:shadow-blue-500/10 active:translate-y-0 active:scale-95"
+                        >
+                            {item}
+                        </motion.button>
+                    ))}
+                </div>
+            </Card>
 
-            {/* Custom Description */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-4 mb-6 animate-fadeInUp">
-                <div className="flex gap-2">
-                    <input value={customDesc} onChange={e => setCustomDesc(e.target.value)}
-                        placeholder="Or describe the emergency..."
-                        className="flex-1 py-2.5 px-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 text-sm" />
-                    <button onClick={toggleMic}
-                        className={`p-2.5 rounded-xl ${listening ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
-                        {listening ? <MicOff size={18} /> : <Mic size={18} />}
+            <Card className="p-5">
+                <p className="text-sm text-zinc-500 mb-2">Describe the emergency</p>
+                <div className="flex flex-col sm:flex-row gap-2">
+                    <input
+                        type="text"
+                        value={customDesc}
+                        onChange={(event) => setCustomDesc(event.target.value)}
+                        placeholder="Example: child is choking and not breathing well"
+                        className="flex-1"
+                    />
+                    <button
+                        type="button"
+                        onClick={toggleMic}
+                        className={`rounded-lg px-3 py-2 text-sm inline-flex items-center justify-center gap-1 border transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-95 ${
+                            listening
+                                ? 'border-rose-200 bg-rose-50 text-rose-600 shadow-lg shadow-rose-500/10'
+                                : 'border-zinc-200/70 bg-white/90 text-zinc-700 shadow-lg shadow-zinc-200/20 hover:shadow-blue-500/10'
+                        }`}
+                    >
+                        {listening ? <MicOff size={16} /> : <Mic size={16} />}
+                        {listening ? 'Listening' : 'Voice'}
                     </button>
-                    <button onClick={() => customDesc && handleEmergency(customDesc)} disabled={!customDesc || loading}
-                        className="px-4 py-2.5 rounded-xl bg-red-600 text-white font-semibold text-sm disabled:opacity-50 flex items-center gap-1">
-                        {loading ? <Loader2 size={16} className="animate-spin" /> : 'Get Help'}
+                    <button
+                        type="button"
+                        onClick={() => customDesc && handleEmergency(customDesc)}
+                        disabled={!customDesc || loading}
+                        className="rounded-lg bg-gradient-to-r from-blue-600 to-teal-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 disabled:opacity-50 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/30 active:translate-y-0 active:scale-95"
+                    >
+                        {loading ? (
+                            <span className="inline-flex items-center gap-2">
+                                <Loader2 size={15} className="animate-spin" /> Loading
+                            </span>
+                        ) : (
+                            'Get Guidance'
+                        )}
                     </button>
                 </div>
-            </div>
-
-            {/* Results */}
-            {loading && (
-                <div className="flex items-center justify-center py-12">
-                    <Loader2 size={32} className="animate-spin text-red-500" />
-                    <span className="ml-3 text-gray-600 font-medium">Getting emergency guidance...</span>
-                </div>
-            )}
+            </Card>
 
             {result && !loading && (
-                <div className="space-y-4 animate-slideUp">
-                    <h2 className="text-lg font-bold text-gray-900">{selectedType} — First Aid Steps</h2>
-
-                    {steps.length > 0 && (
-                        <div className="space-y-2">
-                            {steps.map((s, i) => (
-                                <div key={i} className="flex items-start gap-3 p-4 bg-green-50 rounded-xl border border-green-200 animate-fadeInUp" style={{ animationDelay: `${i * 0.1}s` }}>
-                                    <span className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center font-bold text-sm flex-shrink-0">{i + 1}</span>
-                                    <p className="text-sm text-green-900 font-medium">{s}</p>
-                                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <Card className="p-5">
+                        <h3 className="text-base font-semibold tracking-tight text-zinc-900 mb-3">
+                            {selectedType || 'Emergency'}: Steps
+                        </h3>
+                        <ol className="space-y-2">
+                            {steps.map((step, index) => (
+                                <motion.li
+                                    key={`${step}-${index}`}
+                                    initial={{ opacity: 0, y: 15 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.35, ease: 'easeOut', delay: index * 0.04 }}
+                                    className="rounded-xl bg-zinc-50 border border-zinc-200 p-3 text-sm"
+                                >
+                                    <span className="font-semibold text-zinc-900 mr-2">{index + 1}.</span>
+                                    <span className="text-zinc-700">{step}</span>
+                                </motion.li>
                             ))}
-                        </div>
-                    )}
+                        </ol>
+                    </Card>
 
-                    {doNot.length > 0 && (
-                        <div>
-                            <h3 className="font-bold text-red-700 mb-2">❌ Do NOT</h3>
-                            {doNot.map((d, i) => (
-                                <div key={i} className="p-3 bg-red-50 rounded-xl border border-red-200 text-sm text-red-800 mb-2">{d}</div>
-                            ))}
-                        </div>
-                    )}
-
-                    {whileWaiting.length > 0 && (
-                        <div>
-                            <h3 className="font-bold text-blue-700 mb-2">⏳ While Waiting for Help</h3>
-                            {whileWaiting.map((w, i) => (
-                                <div key={i} className="p-3 bg-blue-50 rounded-xl border border-blue-200 text-sm text-blue-800 mb-2">{w}</div>
-                            ))}
-                        </div>
-                    )}
-
-                    <button onClick={() => { const text = steps.join('. '); const u = new SpeechSynthesisUtterance(text); u.lang = currentLanguage.speechCode; window.speechSynthesis.speak(u); }}
-                        className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-200 transition-all">
-                        <Volume2 size={16} /> 🔊 Read Steps Aloud
-                    </button>
+                    <Card className="p-5 space-y-4">
+                        {doNot.length > 0 && (
+                            <div>
+                                <h4 className="text-sm font-semibold text-rose-700 mb-2 flex items-center gap-1 tracking-tight">
+                                    <AlertTriangle size={14} /> Do Not
+                                </h4>
+                                <ul className="space-y-2">
+                                    {doNot.map((item, index) => (
+                                        <li key={`${item}-${index}`} className="text-sm text-zinc-700">
+                                            {item}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                        {whileWaiting.length > 0 && (
+                            <div>
+                                <h4 className="text-sm font-semibold text-blue-700 mb-2 tracking-tight">While Waiting</h4>
+                                <ul className="space-y-2">
+                                    {whileWaiting.map((item, index) => (
+                                        <li key={`${item}-${index}`} className="text-sm text-zinc-700">
+                                            {item}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                        {!!steps.length && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const utterance = new SpeechSynthesisUtterance(steps.join('. '));
+                                    utterance.lang = currentLanguage.speechCode || 'en-IN';
+                                    window.speechSynthesis.speak(utterance);
+                                }}
+                                className="rounded-lg border border-zinc-200/70 bg-white/90 px-3 py-2 text-sm text-blue-600 inline-flex items-center gap-1 shadow-lg shadow-zinc-200/20 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/10 active:translate-y-0 active:scale-95"
+                            >
+                                <Volume2 size={15} /> Read aloud
+                            </button>
+                        )}
+                    </Card>
                 </div>
             )}
-        </div>
+        </PageTransition>
     );
 }
+
+

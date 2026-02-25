@@ -1,6 +1,10 @@
 import axios from 'axios';
 
-const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
+const OVERPASS_URLS = [
+    'https://overpass-api.de/api/interpreter',
+    'https://overpass.kumi.systems/api/interpreter',
+    'https://overpass.openstreetmap.fr/api/interpreter',
+];
 
 function haversine(lat1, lng1, lat2, lng2) {
     const R = 6371;
@@ -28,11 +32,7 @@ export async function searchNearbyFacilities(lat, lng, radius = 5000) {
     out center body;
   `;
 
-    const response = await axios.post(
-        OVERPASS_URL,
-        `data=${encodeURIComponent(query)}`,
-        { headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, timeout: 20000 }
-    );
+    const response = await postOverpass(query);
 
     const elements = response.data?.elements || [];
 
@@ -43,12 +43,14 @@ export async function searchNearbyFacilities(lat, lng, radius = 5000) {
             if (elLat == null || elLng == null) return null;
             const dist = haversine(lat, lng, elLat, elLng);
             const tags = el.tags || {};
+            const governmentHint = `${tags.operator || ''} ${tags['operator:type'] || ''} ${tags.name || ''}`.toLowerCase();
             return {
                 id: el.id,
                 name: tags.name || tags['name:en'] || 'Unnamed Facility',
                 address: [tags['addr:street'], tags['addr:city'], tags['addr:postcode']].filter(Boolean).join(', ') || tags['addr:full'] || '',
                 lat: elLat, lng: elLng,
                 type: tags.amenity || 'hospital',
+                isGovernment: governmentHint.includes('gov') || governmentHint.includes('government') || governmentHint.includes('municipal') || tags['operator:type'] === 'government',
                 phone: tags.phone || tags['contact:phone'] || '',
                 distance: parseFloat(dist.toFixed(2)),
                 distanceLabel: dist < 1 ? `${Math.round(dist * 1000)} m` : `${dist.toFixed(1)} km`,
@@ -60,22 +62,21 @@ export async function searchNearbyFacilities(lat, lng, radius = 5000) {
 
 export async function searchPHCFacilities(lat, lng, radius = 10000) {
     const query = `
-    [out:json][timeout:15];
+    [out:json][timeout:12];
     (
       node["amenity"="hospital"](around:${radius},${lat},${lng});
       node["amenity"="clinic"](around:${radius},${lat},${lng});
       node["amenity"="health_post"](around:${radius},${lat},${lng});
       node["healthcare"="centre"](around:${radius},${lat},${lng});
+      node["healthcare"="hospital"](around:${radius},${lat},${lng});
+      node["healthcare"="clinic"](around:${radius},${lat},${lng});
+      way["amenity"="clinic"](around:${radius},${lat},${lng});
       way["amenity"="hospital"](around:${radius},${lat},${lng});
     );
     out center body;
   `;
 
-    const response = await axios.post(
-        OVERPASS_URL,
-        `data=${encodeURIComponent(query)}`,
-        { headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, timeout: 20000 }
-    );
+    const response = await postOverpass(query);
 
     const elements = response.data?.elements || [];
     const seen = new Set();
@@ -88,12 +89,14 @@ export async function searchPHCFacilities(lat, lng, radius = 10000) {
             seen.add(el.id);
             const dist = haversine(lat, lng, elLat, elLng);
             const tags = el.tags || {};
+            const governmentHint = `${tags.operator || ''} ${tags['operator:type'] || ''} ${tags.name || ''}`.toLowerCase();
             return {
                 id: el.id,
                 name: tags.name || tags['name:en'] || 'Health Center',
                 address: [tags['addr:street'], tags['addr:city'], tags['addr:postcode']].filter(Boolean).join(', ') || tags['addr:full'] || '',
                 lat: elLat, lng: elLng,
                 type: tags['operator:type'] === 'government' ? 'PHC' : tags.amenity || 'hospital',
+                isGovernment: true,
                 phone: tags.phone || tags['contact:phone'] || '',
                 distance: parseFloat(dist.toFixed(2)),
                 distanceLabel: dist < 1 ? `${Math.round(dist * 1000)} m` : `${dist.toFixed(1)} km`,
@@ -101,6 +104,22 @@ export async function searchPHCFacilities(lat, lng, radius = 10000) {
         })
         .filter(Boolean)
         .sort((a, b) => a.distance - b.distance);
+}
+
+async function postOverpass(query) {
+    let lastError;
+    for (const url of OVERPASS_URLS) {
+        try {
+            return await axios.post(
+                url,
+                `data=${encodeURIComponent(query)}`,
+                { headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, timeout: 12000 }
+            );
+        } catch (err) {
+            lastError = err;
+        }
+    }
+    throw lastError || new Error('Overpass providers unavailable');
 }
 
 export { haversine };

@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
-import { Mail, Loader2, CheckCircle, ArrowLeft, Sparkles } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Loader2, Mail } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import Card from '../common/Card';
+import PageTransition from '../common/PageTransition';
 
 export default function ForgotPassword() {
     const { resetPassword } = useAuth();
@@ -11,64 +13,89 @@ export default function ForgotPassword() {
     const [sent, setSent] = useState(false);
     const [error, setError] = useState('');
 
-    async function handleSubmit(e) {
-        e.preventDefault();
-        if (!email) { setError('Email required'); return; }
-        setLoading(true); setError('');
+    async function handleSubmit(event) {
+        event.preventDefault();
+        if (!email) {
+            setError('Email is required.');
+            return;
+        }
+        setLoading(true);
+        setError('');
         try {
             await resetPassword(email);
             setSent(true);
-            toast.success('Reset email sent!');
+            toast.success('Password reset email sent.');
         } catch (err) {
-            setError(err.code === 'auth/user-not-found' ? 'No account with this email' : 'Failed to send reset email');
+            setError(
+                err?.code === 'auth/user-not-found'
+                    ? 'No account exists with this email.'
+                    : 'Unable to send reset email right now.'
+            );
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+        <PageTransition className="min-h-screen bg-zinc-50 p-4 grid place-items-center">
             <div className="w-full max-w-md">
-                <div className="flex items-center gap-3 mb-8">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-teal-500 flex items-center justify-center text-white"><Sparkles size={18} /></div>
-                    <span className="text-xl font-bold text-gray-900">SehatSaathi</span>
-                </div>
-
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-8">
+                <Card className="p-6 md:p-7">
                     {!sent ? (
                         <>
-                            <h1 className="text-2xl font-bold text-gray-900 mb-1">Reset Password</h1>
-                            <p className="text-gray-500 text-sm mb-6">Enter your email and we'll send a reset link</p>
+                            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Reset Password</h1>
+                            <p className="mt-1 text-sm text-zinc-500 leading-relaxed">
+                                Enter your email to receive a secure reset link.
+                            </p>
 
-                            {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">{error}</div>}
-
-                            <form onSubmit={handleSubmit} className="space-y-4">
-                                <div className="relative">
-                                    <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email address"
-                                        className="w-full py-3 pl-11 pr-4 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all" />
+                            {error && (
+                                <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+                                    {error}
                                 </div>
-                                <button type="submit" disabled={loading}
-                                    className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold shadow-lg shadow-blue-500/20 hover:shadow-xl disabled:opacity-50 flex items-center justify-center gap-2 transition-all">
-                                    {loading ? <Loader2 size={18} className="animate-spin" /> : <Mail size={18} />} Send Reset Link
+                            )}
+
+                            <form onSubmit={handleSubmit} className="mt-4 space-y-3">
+                                <div className="relative">
+                                    <Mail
+                                        size={16}
+                                        className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400"
+                                    />
+                                    <input
+                                        type="email"
+                                        value={email}
+                                        onChange={(event) => setEmail(event.target.value)}
+                                        placeholder="Email address"
+                                        className="w-full pl-10"
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="w-full rounded-lg bg-gradient-to-r from-blue-600 to-teal-500 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 disabled:opacity-50 inline-flex items-center justify-center gap-2 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/30 active:translate-y-0 active:scale-95"
+                                >
+                                    {loading ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
+                                    Send Reset Link
                                 </button>
                             </form>
                         </>
                     ) : (
-                        <div className="text-center py-6">
-                            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4 animate-bounceIn">
-                                <CheckCircle size={32} className="text-green-600" />
+                        <div className="text-center py-4">
+                            <div className="h-14 w-14 rounded-full bg-blue-50 text-blue-600 grid place-items-center mx-auto">
+                                <CheckCircle2 size={24} />
                             </div>
-                            <h2 className="text-xl font-bold text-gray-900 mb-2">Check Your Email</h2>
-                            <p className="text-gray-500 text-sm mb-4">We sent a password reset link to <strong>{email}</strong></p>
-                            <p className="text-xs text-gray-400">Didn't get it? Check spam or <button onClick={() => setSent(false)} className="text-blue-600 font-medium">try again</button></p>
+                            <h2 className="mt-3 text-xl font-semibold tracking-tight text-zinc-900">Check Your Email</h2>
+                            <p className="mt-1 text-sm text-zinc-500 leading-relaxed">
+                                We sent a password reset link to <span className="font-semibold">{email}</span>.
+                            </p>
                         </div>
                     )}
-                </div>
+                </Card>
 
-                <Link to="/login" className="flex items-center justify-center gap-2 mt-6 text-sm text-gray-500 hover:text-gray-700 font-medium">
-                    <ArrowLeft size={16} /> Back to Sign In
+                <Link to="/login" className="mt-4 text-sm text-zinc-500 hover:text-zinc-700 inline-flex items-center gap-1 transition-all duration-300 ease-out">
+                    <ArrowLeft size={14} /> Back to Sign In
                 </Link>
             </div>
-        </div>
+        </PageTransition>
     );
 }
+
+

@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { auth, googleProvider } from '../config/firebase';
 import {
     onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword,
-    signInWithPopup, signOut, sendPasswordResetEmail, updateProfile as fbUpdateProfile,
+    signInWithRedirect, getRedirectResult, signOut, sendPasswordResetEmail, updateProfile as fbUpdateProfile,
 } from 'firebase/auth';
 import api from '../services/api';
 
@@ -14,24 +14,35 @@ export function AuthProvider({ children }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const unsub = onAuthStateChanged(auth, async (fbUser) => {
+        getRedirectResult(auth).catch(() => { });
+
+        const unsub = onAuthStateChanged(auth, (fbUser) => {
             setFirebaseUser(fbUser);
+            setLoading(false);
+
             if (fbUser) {
-                try {
-                    const res = await api.post('/auth/sync', {});
-                    setUser(res.data);
-                } catch { setUser({ name: fbUser.displayName || '', email: fbUser.email }); }
+                // Do not block login UX on backend sync.
+                (async () => {
+                    try {
+                        const token = await fbUser.getIdToken();
+                        const res = await api.post('/auth/sync', {}, {
+                            headers: { Authorization: `Bearer ${token}` },
+                        });
+                        setUser(res.data);
+                    } catch {
+                        setUser({ name: fbUser.displayName || '', email: fbUser.email });
+                    }
+                })();
             } else {
                 setUser(null);
             }
-            setLoading(false);
         });
         return unsub;
     }, []);
 
     const login = (email, password) => signInWithEmailAndPassword(auth, email, password);
 
-    const loginWithGoogle = () => signInWithPopup(auth, googleProvider);
+    const loginWithGoogle = () => signInWithRedirect(auth, googleProvider);
 
     const register = async (email, password, name) => {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
@@ -44,11 +55,9 @@ export function AuthProvider({ children }) {
     const resetPassword = (email) => sendPasswordResetEmail(auth, email);
 
     const updateUserProfile = async (data) => {
-        try {
-            const res = await api.put('/auth/profile', data);
-            setUser(res.data);
-            return res.data;
-        } catch (err) { throw err; }
+        const res = await api.put('/auth/profile', data);
+        setUser(res.data);
+        return res.data;
     };
 
     return (

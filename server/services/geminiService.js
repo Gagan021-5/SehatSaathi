@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'demo-key');
-const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY );
+const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-002' });
 
 const LANG = {
     en: 'Respond in English.',

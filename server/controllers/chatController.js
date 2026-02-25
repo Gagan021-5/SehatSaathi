@@ -14,7 +14,13 @@ export async function sendMessage(req, res) {
         session.language = language;
         session.messages.push({ role: 'user', content: message });
 
-        const reply = await chatWithPatient(session.messages, language);
+        let reply;
+        try {
+            reply = await chatWithPatient(session.messages, language);
+        } catch (err) {
+            console.error('Chat AI fallback:', err.message);
+            reply = 'I am temporarily unable to generate a full response. Please try again in a moment or contact a doctor for urgent symptoms.';
+        }
         session.messages.push({ role: 'assistant', content: reply });
 
         res.json({ reply, sessionId: sid });

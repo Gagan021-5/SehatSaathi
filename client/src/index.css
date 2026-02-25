@@ -1,21 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-teal-500: #14b8a6;
-  --color-teal-600: #0d9488;
 }
 
 @layer base {
   * {
     box-sizing: border-box;
-    margin: 0;
-    padding: 0;
   }
 
   html {
@@ -23,28 +15,73 @@
   }
 
   body {
+    margin: 0;
+    min-height: 100vh;
     font-family: var(--font-sans);
-    background: #f8fafc;
-    color: #1e293b;
+    background: #fafafa;
+    color: #71717a;
+    line-height: 1.625;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  ::selection {
-    background: #dbeafe;
-    color: #1e3a5f;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #18181b;
   }
 
-  ::-webkit-scrollbar {
-    width: 6px;
+  a {
+    color: #2563eb;
   }
 
-  ::-webkit-scrollbar-track {
-    background: transparent;
+  input:not([type='checkbox']):not([type='radio']),
+  select,
+  textarea {
+    border: 0;
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: #fafafa;
+    box-shadow: inset 0 0 0 1px rgba(212, 212, 216, 0.85);
+    outline: none;
+    transition: box-shadow 0.3s ease, background-color 0.3s ease, transform 0.3s ease;
   }
 
-  ::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 3px;
+  input:not([type='checkbox']):not([type='radio']):focus,
+  select:focus,
+  textarea:focus {
+    box-shadow: inset 0 0 0 1px #3b82f6, 0 0 0 4px rgba(59, 130, 246, 0.1);
+    background: #ffffff;
   }
+
+  button {
+    transition: all 0.3s ease-out;
+  }
+
+  button:not(:disabled):hover {
+    transform: translateY(-2px);
+  }
+
+  button:not(:disabled):active {
+    transform: translateY(0) scale(0.95);
+  }
+}
+
+@layer components {
+  .app-shell {
+    @apply min-h-screen bg-zinc-50 text-zinc-500;
+  }
+
+  .surface-glass {
+    @apply bg-white/80 backdrop-blur-xl border border-zinc-200/60 shadow-xl shadow-zinc-200/40;
+  }
+}
+
+.lucide {
+  stroke-width: 1.5;
 }

@@ -10,7 +10,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
 
 BASE = os.path.dirname(__file__)
 MODEL_PATH = os.path.join(BASE, 'diabetes_model.pkl')
@@ -24,9 +24,9 @@ def load_model():
     if os.path.exists(MODEL_PATH) and os.path.exists(ENCODERS_PATH):
         model = joblib.load(MODEL_PATH)
         label_encoders = joblib.load(ENCODERS_PATH)
-        print("✅ Model and encoders loaded successfully")
+        print("Model and encoders loaded successfully")
     else:
-        print("⚠️  Model files not found — run train_model.py first")
+        print("Model files not found - run train_model.py first")
 
 def encode_value(encoder, value):
     """Safely encode a value; return -1 if unseen."""
@@ -100,5 +100,5 @@ def health():
 
 if __name__ == '__main__':
     load_model()
-    print("🧠 Diabetes ML Service starting on port 5001...")
+    print("Diabetes ML Service starting on port 5001...")
     app.run(host='0.0.0.0', port=5001, debug=True)

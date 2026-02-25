@@ -10,7 +10,7 @@ export async function searchNearby(req, res) {
         res.json({ results });
     } catch (err) {
         console.error('Hospital search error:', err.message);
-        res.status(500).json({ error: 'Failed to search for nearby hospitals', details: err.message });
+        res.json({ results: [], fallback: true, error: 'Unable to fetch nearby hospitals right now' });
     }
 }
 
@@ -18,11 +18,22 @@ export async function searchPHC(req, res) {
     try {
         const { lat, lng, radius } = req.query;
         if (!lat || !lng) return res.status(400).json({ error: 'lat and lng are required' });
-        const results = await searchPHCFacilities(parseFloat(lat), parseFloat(lng), parseInt(radius) || 10000);
-        res.json({ results });
+        const parsedLat = parseFloat(lat);
+        const parsedLng = parseFloat(lng);
+        const parsedRadius = parseInt(radius) || 10000;
+
+        try {
+            const results = await searchPHCFacilities(parsedLat, parsedLng, parsedRadius);
+            return res.json({ results });
+        } catch {
+            // Fallback: derive government-like centers from nearby facilities.
+            const nearby = await searchNearbyFacilities(parsedLat, parsedLng, Math.min(parsedRadius, 6000));
+            const results = nearby.filter((x) => x.isGovernment || ['health_post', 'clinic'].includes(x.type)).slice(0, 20);
+            return res.json({ results, fallback: true });
+        }
     } catch (err) {
         console.error('PHC search error:', err.message);
-        res.status(500).json({ error: 'Failed to search for PHCs', details: err.message });
+        res.json({ results: [], fallback: true, error: 'Unable to fetch PHC data right now' });
     }
 }
 

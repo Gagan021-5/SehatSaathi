@@ -4,7 +4,7 @@ const ML_URL = process.env.ML_SERVICE_URL || 'http://localhost:5001';
 
 export async function predictDiabetes(data) {
     try {
-        const res = await axios.post(`${ML_URL}/predict/diabetes`, data, { timeout: 15000 });
+        const res = await axios.post(`${ML_URL}/predict`, data, { timeout: 15000 });
         return res.data;
     } catch (err) {
         console.error('ML diabetes error:', err.message);

@@ -1,13 +1,19 @@
-import { useState, useRef, useEffect } from 'react';
-import { useLanguage } from '../context/LanguageContext';
-import { startChat, sendMessage } from '../services/api';
+import { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import toast from 'react-hot-toast';
-import { Send, Mic, MicOff, Volume2, Loader2, Bot, User, Sparkles } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Bot, Loader2, Mic, MicOff, Send, User, Volume2 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
+import { sendMessage, startChat } from '../services/api';
+import Card from '../components/common/Card';
+import PageTransition from '../components/common/PageTransition';
 
-const QUICK_PILLS = [
-    '🤒 Fever', '🤕 Headache', '🤢 Nausea', '🤧 Cold & Cough',
-    '💊 Stomach Pain', '😴 Fatigue', '🫁 Breathing Issue', '🩸 Blood Pressure',
+const quickPrompts = [
+    'Fever for 2 days',
+    'Persistent headache',
+    'Nausea after meals',
+    'Mild chest discomfort',
+    'Seasonal cough',
 ];
 
 export default function ChatPage() {
@@ -17,151 +23,265 @@ export default function ChatPage() {
     const [loading, setLoading] = useState(false);
     const [sessionId, setSessionId] = useState(null);
     const [listening, setListening] = useState(false);
+
     const chatEndRef = useRef(null);
     const recognitionRef = useRef(null);
 
-    useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+    useEffect(() => {
+        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages, loading]);
 
     async function initChat() {
         try {
             const { data } = await startChat({ language: currentLanguage.code });
-            setSessionId(data.sessionId || data._id);
-            return data.sessionId || data._id;
-        } catch { return null; }
+            const nextId = data.sessionId || data._id;
+            setSessionId(nextId);
+            return nextId;
+        } catch {
+            return null;
+        }
     }
 
     async function handleSend(text) {
-        const msg = (text || input).trim();
-        if (!msg || loading) return;
+        const nextText = (text || input).trim();
+        if (!nextText || loading) return;
+
         setInput('');
-        setMessages(prev => [...prev, { role: 'user', content: msg }]);
+        setMessages((prev) => [...prev, { role: 'user', content: nextText }]);
         setLoading(true);
 
         try {
-            let sid = sessionId;
-            if (!sid) sid = await initChat();
-            const { data } = await sendMessage({ sessionId: sid, message: msg, language: currentLanguage.code });
-            setMessages(prev => [...prev, { role: 'assistant', content: data.response || data.message || 'I understand. Could you tell me more?' }]);
+            let activeSessionId = sessionId;
+            if (!activeSessionId) activeSessionId = await initChat();
+
+            const { data } = await sendMessage({
+                sessionId: activeSessionId,
+                message: nextText,
+                language: currentLanguage.code,
+            });
+
+            setMessages((prev) => [
+                ...prev,
+                {
+                    role: 'assistant',
+                    content: data.response || data.message || 'I understand. Please share more detail.',
+                },
+            ]);
         } catch {
-            toast.error('Failed to get response');
-            setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' }]);
+            toast.error('Unable to fetch chat response right now.');
+            setMessages((prev) => [
+                ...prev,
+                { role: 'assistant', content: 'Service is currently unavailable. Please retry shortly.' },
+            ]);
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     }
 
     function toggleMic() {
-        if (listening) { recognitionRef.current?.stop(); setListening(false); return; }
-        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SR) { toast.error('Speech not supported'); return; }
-        const r = new SR();
-        r.lang = currentLanguage.speechCode || 'en-IN';
-        r.continuous = false;
-        r.onresult = (e) => { setInput(e.results[0][0].transcript); setListening(false); };
-        r.onerror = () => setListening(false);
-        r.onend = () => setListening(false);
-        recognitionRef.current = r;
-        r.start();
+        if (listening) {
+            recognitionRef.current?.stop();
+            setListening(false);
+            return;
+        }
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            toast.error('Speech recognition is not supported in this browser.');
+            return;
+        }
+
+        const recognizer = new SpeechRecognition();
+        recognizer.lang = currentLanguage.speechCode || 'en-IN';
+        recognizer.continuous = false;
+        recognizer.onresult = (event) => {
+            setInput(event.results[0][0].transcript || '');
+            setListening(false);
+        };
+        recognizer.onerror = () => setListening(false);
+        recognizer.onend = () => setListening(false);
+
+        recognitionRef.current = recognizer;
+        recognizer.start();
         setListening(true);
     }
 
     function speak(text) {
-        const u = new SpeechSynthesisUtterance(text.replace(/[*#_`]/g, ''));
-        u.lang = currentLanguage.speechCode || 'en-IN';
-        window.speechSynthesis.speak(u);
+        const utterance = new SpeechSynthesisUtterance(text.replace(/[*#_`]/g, ''));
+        utterance.lang = currentLanguage.speechCode || 'en-IN';
+        window.speechSynthesis.speak(utterance);
     }
 
-    return (
-        <div className="flex flex-col h-[calc(100vh-64px)]">
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 custom-scroll">
-                {messages.length === 0 && (
-                    <div className="flex flex-col items-center justify-center h-full text-center animate-fadeInUp">
-                        <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-500 to-teal-500 flex items-center justify-center text-white mb-4 animate-float">
-                            <Bot size={40} />
-                        </div>
-                        <h2 className="text-xl font-bold text-gray-900 mb-2">{t('chat.title')}</h2>
-                        <p className="text-sm text-gray-500 mb-6 max-w-sm">{t('chat.subtitle')}</p>
-                        <div className="flex flex-wrap justify-center gap-2 max-w-lg">
-                            {QUICK_PILLS.map(pill => (
-                                <button key={pill} onClick={() => handleSend(pill)}
-                                    className="px-4 py-2 bg-white rounded-full border border-gray-200 text-sm text-gray-700 hover:bg-blue-50 hover:border-blue-300 transition-all">
-                                    {pill}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                )}
-                {messages.map((msg, i) => (
-                    <div key={i} className={`flex gap-3 animate-fadeInUp ${msg.role === 'user' ? 'justify-end' : ''}`}>
-                        {msg.role === 'assistant' && (
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-teal-500 flex items-center justify-center text-white flex-shrink-0">
-                                <Bot size={16} />
-                            </div>
-                        )}
-                        <div className={`max-w-[75%] ${msg.role === 'user' ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl rounded-tr-md px-4 py-3' : 'bg-white border border-gray-100 rounded-2xl rounded-tl-md px-4 py-3 shadow-sm'}`}>
-                            {msg.role === 'assistant' ? (
-                                <div className="prose prose-sm max-w-none text-gray-700">
-                                    <ReactMarkdown>{msg.content}</ReactMarkdown>
-                                    <button onClick={() => speak(msg.content)} className="mt-2 flex items-center gap-1 text-xs text-blue-500 hover:text-blue-700">
-                                        <Volume2 size={12} /> Listen
-                                    </button>
-                                </div>
-                            ) : <p className="text-sm">{msg.content}</p>}
-                        </div>
-                        {msg.role === 'user' && (
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white flex-shrink-0">
-                                <User size={16} />
-                            </div>
-                        )}
-                    </div>
-                ))}
-                {loading && (
-                    <div className="flex gap-3 animate-fadeInUp">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-teal-500 flex items-center justify-center text-white"><Bot size={16} /></div>
-                        <div className="bg-white border border-gray-100 rounded-2xl rounded-tl-md px-5 py-3 shadow-sm">
-                            <div className="flex gap-1.5">
-                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0s' }} />
-                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
-                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
-                            </div>
-                        </div>
-                    </div>
-                )}
-                <div ref={chatEndRef} />
-            </div>
+    const containerVariants = {
+        hidden: { opacity: 0, y: 15 },
+        show: {
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.4, ease: 'easeOut', staggerChildren: 0.06 },
+        },
+    };
 
-            {/* Input Bar */}
-            <div className="border-t border-gray-100 bg-white p-4">
-                {messages.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mb-3">
-                        {QUICK_PILLS.slice(0, 4).map(pill => (
-                            <button key={pill} onClick={() => handleSend(pill)}
-                                className="px-3 py-1 bg-gray-50 rounded-full text-xs text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-all border border-gray-200">
-                                {pill}
-                            </button>
-                        ))}
-                    </div>
-                )}
-                <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex items-end gap-2">
-                    <div className="flex-1 relative">
-                        <textarea
-                            value={input} onChange={e => setInput(e.target.value)}
-                            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-                            placeholder={t('chat.placeholder')}
-                            rows={1}
-                            className="w-full py-3 px-4 pr-12 bg-gray-50 border border-gray-200 rounded-xl resize-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm"
-                        />
-                        <button type="button" onClick={toggleMic}
-                            className={`absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-colors ${listening ? 'text-red-500 bg-red-50 animate-pulse' : 'text-gray-400 hover:text-gray-600'}`}>
-                            {listening ? <MicOff size={18} /> : <Mic size={18} />}
-                        </button>
-                    </div>
-                    <button type="submit" disabled={!input.trim() || loading}
-                        className="p-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/20 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all">
-                        {loading ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
-                    </button>
-                </form>
-            </div>
-        </div>
+    const itemVariants = {
+        hidden: { opacity: 0, y: 15 },
+        show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } },
+    };
+
+    return (
+        <PageTransition className="mx-auto max-w-6xl">
+            <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="show"
+                className="relative grid grid-cols-1 gap-4"
+            >
+                <div className="pointer-events-none absolute -top-8 -left-10 h-40 w-40 rounded-full bg-blue-400/20 blur-3xl" />
+                <div className="pointer-events-none absolute -bottom-10 -right-10 h-44 w-44 rounded-full bg-teal-400/20 blur-3xl" />
+
+                <motion.div variants={itemVariants}>
+                    <Card className="relative h-[calc(100vh-10.5rem)] overflow-hidden rounded-2xl border border-zinc-200/60 bg-white/80 p-0 shadow-xl shadow-zinc-200/40 backdrop-blur-xl">
+                        <div className="flex items-center justify-between gap-3 border-b border-zinc-200/60 bg-white/70 px-5 py-4 backdrop-blur-xl md:px-6">
+                            <div>
+                                <h1 className="text-xl tracking-tight text-zinc-900 font-semibold">AI Doctor Chat</h1>
+                                <p className="text-sm text-zinc-500 leading-relaxed">
+                                    {t('chat.subtitle') || 'Describe symptoms and receive guided responses.'}
+                                </p>
+                            </div>
+                            <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-blue-600 to-teal-500 text-white shadow-lg shadow-blue-500/20 grid place-items-center">
+                                <Bot size={18} />
+                            </div>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto px-5 py-5 md:px-6 md:py-6 space-y-4">
+                            {messages.length === 0 && (
+                                <motion.div
+                                    variants={itemVariants}
+                                    className="rounded-2xl border border-zinc-200/60 bg-white/80 p-5 shadow-xl shadow-zinc-200/30 backdrop-blur-xl"
+                                >
+                                    <p className="mb-3 text-sm text-zinc-500">Quick start prompts</p>
+                                    <div className="flex flex-wrap gap-2.5">
+                                        {quickPrompts.map((prompt) => (
+                                            <button
+                                                key={prompt}
+                                                type="button"
+                                                onClick={() => handleSend(prompt)}
+                                                className="rounded-lg border border-zinc-200/70 bg-white/90 px-3.5 py-2 text-xs font-medium text-zinc-700 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:shadow-zinc-200/40 active:translate-y-0 active:scale-95"
+                                            >
+                                                {prompt}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            <AnimatePresence initial={false}>
+                                {messages.map((message, index) => (
+                                    <motion.div
+                                        key={`${message.role}-${index}`}
+                                        initial={{ opacity: 0, y: 15 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.32, ease: 'easeOut' }}
+                                        className={`flex gap-2.5 ${
+                                            message.role === 'user' ? 'justify-end' : 'justify-start'
+                                        }`}
+                                    >
+                                        {message.role === 'assistant' && (
+                                            <div className="h-8 w-8 shrink-0 rounded-lg bg-gradient-to-br from-blue-600 to-teal-500 text-white shadow-lg shadow-blue-500/20 grid place-items-center">
+                                                <Bot size={14} />
+                                            </div>
+                                        )}
+                                        <div
+                                            className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm border ${
+                                                message.role === 'user'
+                                                    ? 'bg-gradient-to-r from-blue-600 to-teal-500 text-white border-blue-500/30 shadow-lg shadow-blue-500/20'
+                                                    : 'border-zinc-200/60 bg-white/85 text-zinc-700 shadow-xl shadow-zinc-200/30 backdrop-blur-xl'
+                                            }`}
+                                        >
+                                            {message.role === 'assistant' ? (
+                                                <div>
+                                                    <div className="leading-relaxed">
+                                                        <ReactMarkdown>{message.content}</ReactMarkdown>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => speak(message.content)}
+                                                        className="mt-2 inline-flex items-center gap-1 rounded-lg border border-zinc-200/60 bg-white/90 px-2.5 py-1.5 text-xs text-blue-600 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/10 active:translate-y-0 active:scale-95"
+                                                    >
+                                                        <Volume2 size={12} /> Listen
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <p className="leading-relaxed">{message.content}</p>
+                                            )}
+                                        </div>
+                                        {message.role === 'user' && (
+                                            <div className="h-8 w-8 shrink-0 rounded-lg bg-zinc-900 text-white shadow-lg shadow-zinc-400/20 grid place-items-center">
+                                                <User size={14} />
+                                            </div>
+                                        )}
+                                    </motion.div>
+                                ))}
+                            </AnimatePresence>
+
+                            {loading && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 15 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.32, ease: 'easeOut' }}
+                                    className="inline-flex items-center gap-2 rounded-xl border border-zinc-200/60 bg-white/85 px-3 py-2 text-sm text-zinc-500 shadow-xl shadow-zinc-200/30 backdrop-blur-xl"
+                                >
+                                    <Loader2 size={15} className="animate-spin" /> Generating response...
+                                </motion.div>
+                            )}
+                            <div ref={chatEndRef} />
+                        </div>
+
+                        <form
+                            onSubmit={(event) => {
+                                event.preventDefault();
+                                handleSend();
+                            }}
+                            className="border-t border-zinc-200/60 bg-white/70 px-5 py-4 backdrop-blur-xl md:px-6"
+                        >
+                            <div className="flex items-end gap-2.5">
+                                <textarea
+                                    rows={2}
+                                    value={input}
+                                    onChange={(event) => setInput(event.target.value)}
+                                    placeholder={t('chat.placeholder') || 'Type your message'}
+                                    className="flex-1 resize-none rounded-xl border border-zinc-200/70 bg-white/90 px-4 py-3 text-sm text-zinc-800 transition-all duration-300 ease-out focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10"
+                                    onKeyDown={(event) => {
+                                        if (event.key === 'Enter' && !event.shiftKey) {
+                                            event.preventDefault();
+                                            handleSend();
+                                        }
+                                    }}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={toggleMic}
+                                    className={`h-11 w-11 rounded-lg grid place-items-center transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-95 ${
+                                        listening
+                                            ? 'border border-rose-200 bg-rose-50 text-rose-600 shadow-lg shadow-rose-500/10'
+                                            : 'border border-zinc-200/70 bg-white/90 text-zinc-500 shadow-lg shadow-zinc-200/30'
+                                    }`}
+                                >
+                                    {listening ? <MicOff size={17} /> : <Mic size={17} />}
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={loading || !input.trim()}
+                                    className="h-11 w-11 rounded-lg bg-gradient-to-r from-blue-600 to-teal-500 text-white shadow-lg shadow-blue-500/20 grid place-items-center transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/30 active:translate-y-0 active:scale-95 disabled:opacity-50 disabled:hover:translate-y-0"
+                                >
+                                    {loading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                                </button>
+                            </div>
+                        </form>
+                    </Card>
+                </motion.div>
+            </motion.div>
+        </PageTransition>
     );
 }
+
+
+
