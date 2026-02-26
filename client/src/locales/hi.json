@@ -1,0 +1,142 @@
+{
+  "app": {
+    "name": "सेहतसाथी",
+    "tagline": "आपका AI स्वास्थ्य साथी"
+  },
+  "nav": {
+    "dashboard": "डैशबोर्ड",
+    "health": "मेरे वाइटल्स",
+    "predict": "डायबिटीज जांच",
+    "chat": "AI डॉक्टर",
+    "prescription": "प्रिस्क्रिप्शन स्कैन",
+    "firstAid": "प्राथमिक उपचार गाइड",
+    "medicines": "दवा रिमाइंडर",
+    "hospitals": "अस्पताल खोजें",
+    "healthTools": "हेल्थ कैलकुलेटर",
+    "ruralOutreach": "ग्रामीण कनेक्ट",
+    "reports": "हेल्थ रिपोर्ट",
+    "familyVault": "फैमिली वॉल्ट",
+    "emergency": "इमरजेंसी SOS",
+    "profile": "प्रोफाइल"
+  },
+  "sidebar": {
+    "groups": {
+      "overview": "ओवरव्यू",
+      "smartFeatures": "स्मार्ट फीचर्स",
+      "dailyCareTools": "रोज़मर्रा देखभाल और टूल्स",
+      "documents": "मेरे दस्तावेज़"
+    },
+    "premium": "प्रीमियम"
+  },
+  "navbar": {
+    "breadcrumbs": {
+      "workspace": "वर्कस्पेस",
+      "screening": "स्क्रीनिंग",
+      "consultation": "परामर्श",
+      "records": "रिकॉर्ड्स",
+      "vitals": "वाइटल्स",
+      "locator": "लोकेटर",
+      "rapidAccess": "तुरंत सहायता",
+      "care": "देखभाल",
+      "community": "समुदाय",
+      "utilities": "उपयोगिताएं",
+      "account": "अकाउंट"
+    },
+    "openSidebar": "साइडबार खोलें",
+    "manageAccount": "अकाउंट प्रबंधित करें"
+  },
+  "language": {
+    "selectorLabel": "भाषा",
+    "changed": "भाषा {{language}} में बदल दी गई"
+  },
+  "onboarding": {
+    "chooseLanguage": "अपनी पसंदीदा भाषा चुनें",
+    "hint": "ऊपर नेविगेशन मेन्यू से भाषा कभी भी बदली जा सकती है।"
+  },
+  "common": {
+    "save": "सेव",
+    "cancel": "रद्द करें",
+    "close": "बंद करें",
+    "user": "यूज़र",
+    "yrs": "वर्ष"
+  },
+  "ruralOutreach": {
+    "campMode": "कैंप मोड",
+    "title": "रूरल आउटरीच कमांड",
+    "subtitle": "गांव के हेल्थ कैंप मैनेज करें, रिकॉर्ड डिजिटाइज़ करें, और AI ट्रायेज ऑफलाइन उपयोग करें।",
+    "syncStatusLabel": "सिंक स्टेटस",
+    "sync": {
+      "online": "ऑनलाइन",
+      "offline": "ऑफलाइन"
+    },
+    "metrics": {
+      "villagersRegistered": "पंजीकृत ग्रामीण",
+      "needsReview": "रीव्यू आवश्यक",
+      "cleared": "क्लियर"
+    },
+    "empty": {
+      "title": "रोस्टर में अभी कोई ग्रामीण नहीं है",
+      "description": "पहले प्रतिभागी को जोड़ने के लिए \"Add Patient\" दबाएं।"
+    },
+    "card": {
+      "village": "गांव",
+      "chiefComplaint": "मुख्य शिकायत",
+      "logVitals": "वाइटल्स लॉग करें",
+      "voiceTriage": "वॉयस ट्रायेज",
+      "stopRecording": "रिकॉर्डिंग रोकें",
+      "lastVitals": "पिछले वाइटल्स",
+      "bloodPressureShort": "BP",
+      "sugarShort": "शुगर",
+      "tempShort": "तापमान"
+    },
+    "buttons": {
+      "addPatient": "मरीज जोड़ें",
+      "saveToRoster": "रोस्टर में सेव करें",
+      "saveVitals": "वाइटल्स सेव करें"
+    },
+    "modals": {
+      "registerTitle": "नया ग्रामीण पंजीकृत करें",
+      "logVitalsTitle": "वाइटल्स लॉग करें",
+      "logVitalsFor": "वाइटल्स लॉग करें • {{name}}"
+    },
+    "fields": {
+      "name": "नाम",
+      "age": "आयु",
+      "gender": "लिंग",
+      "village": "गांव",
+      "chiefComplaint": "मुख्य शिकायत",
+      "bloodPressure": "ब्लड प्रेशर",
+      "sugar": "शुगर",
+      "temperature": "तापमान"
+    },
+    "placeholders": {
+      "name": "उदा. लता देवी",
+      "age": "58",
+      "village": "उदा. रामपुर खुर्द",
+      "chiefComplaint": "मुख्य लक्षण लिखें...",
+      "bloodPressure": "उदा. 120/80",
+      "sugar": "उदा. 145 mg/dL",
+      "temperature": "उदा. 98.4 F"
+    },
+    "gender": {
+      "female": "महिला",
+      "male": "पुरुष",
+      "other": "अन्य"
+    },
+    "status": {
+      "needsReview": "रीव्यू आवश्यक",
+      "cleared": "क्लियर"
+    },
+    "toasts": {
+      "invalidPatient": "कृपया सभी मरीज फ़ील्ड सही मान के साथ भरें।",
+      "patientAdded": "मरीज ऑफलाइन गांव रोस्टर में जोड़ दिया गया।",
+      "invalidVitals": "सेव करने से पहले BP, शुगर और तापमान भरें।",
+      "vitalsSaved": "वाइटल्स सेव हो गए और मरीज को क्लियर मार्क किया गया।",
+      "finishRecordingFirst": "नई रिकॉर्डिंग शुरू करने से पहले वर्तमान रिकॉर्डिंग पूरी करें।",
+      "audioNotSupported": "इस डिवाइस पर ऑडियो रिकॉर्डिंग समर्थित नहीं है।",
+      "voiceCaptured": "वॉयस ट्रायेज सैंपल ऑफलाइन अनुवाद के लिए सेव हो गया।",
+      "recordingStarted": "रिकॉर्डिंग शुरू हो गई है। रोकने के लिए फिर से टैप करें।",
+      "microphoneError": "माइक्रोफोन एक्सेस नहीं हो सका।"
+    }
+  }
+}

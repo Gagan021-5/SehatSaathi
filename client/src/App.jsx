@@ -23,6 +23,7 @@ const MedicinesPage = lazy(() => import('./pages/Medicines'));
 const ReportsPage = lazy(() => import('./pages/Reports'));
 const FamilyVaultPage = lazy(() => import('./pages/FamilyVault'));
 const HealthToolsPage = lazy(() => import('./pages/HealthTools'));
+const RuralOutreachPage = lazy(() => import('./pages/RuralOutreach'));
 
 function RouteLoader() {
   return (
@@ -85,6 +86,7 @@ function AppLayout() {
                 <Route path="/reports" element={<ReportsPage />} />
                 <Route path="/family-vault" element={<FamilyVaultPage />} />
                 <Route path="/health-tools" element={<HealthToolsPage />} />
+                <Route path="/rural-outreach" element={<RuralOutreachPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>

@@ -13,6 +13,8 @@ import hospitalRoutes from './routes/hospitalRoutes.js';
 import medicineRoutes from './routes/medicineRoutes.js';
 import predictionRoutes from './routes/predictionRoutes.js';
 import prescriptionRoutes from './routes/prescriptionRoutes.js';
+import smsRoutes from './routes/smsRoutes.js';
+import { startSmsCron } from './services/smsCron.js';
 
 const app = express();
 const PORT = Number(process.env.PORT || 5000);
@@ -35,6 +37,7 @@ app.use('/api/health', healthRoutes);
 app.use('/api/medicines', medicineRoutes);
 app.use('/api/family', familyRoutes);
 app.use('/api/health-tools', healthToolRoutes);
+app.use('/api/sms', smsRoutes);
 
 app.get('/api/health-check', (_req, res) => {
     res.json({ status: 'ok', service: 'SehatSaathi API', port: PORT });
@@ -44,7 +47,10 @@ const MONGO_URI = process.env.MONGO_URI;
 if (MONGO_URI) {
     mongoose
         .connect(MONGO_URI)
-        .then(() => console.log('MongoDB connected'))
+        .then(() => {
+            console.log('MongoDB connected');
+            startSmsCron();
+        })
         .catch((error) => console.log(`MongoDB connection failed: ${error.message}`));
 }
 

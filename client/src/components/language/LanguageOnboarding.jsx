@@ -1,10 +1,11 @@
-import { Languages, Sparkles } from 'lucide-react';
+import { Languages } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '../../context/LanguageContext';
 import Card from '../common/Card';
+import AppLogo from '../common/AppLogo';
 
 export default function LanguageOnboarding() {
-    const { languages, changeLanguage, completeOnboarding, isFirstVisit } = useLanguage();
+    const { languages, changeLanguage, completeOnboarding, isFirstVisit, t } = useLanguage();
     if (!isFirstVisit) return null;
 
     return (
@@ -16,14 +17,13 @@ export default function LanguageOnboarding() {
         >
             <Card className="w-full max-w-3xl p-6 md:p-8">
                 <div className="flex items-center gap-3 mb-2">
-                    <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-blue-600 to-teal-500 text-white shadow-lg shadow-blue-500/25 grid place-items-center">
-                        <Sparkles size={18} />
-                    </div>
-                    <div>
-                        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">SehatSaathi</h1>
-                        <p className="text-sm text-slate-500 leading-relaxed">Choose your preferred language</p>
-                    </div>
+                    <AppLogo
+                        showTagline={false}
+                        iconClassName="h-11 w-11"
+                        nameClassName="text-2xl font-semibold tracking-tight text-slate-900"
+                    />
                 </div>
+                <p className="text-sm text-slate-500 leading-relaxed">{t('onboarding.chooseLanguage')}</p>
 
                 <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
                     {languages.map((language) => (
@@ -45,7 +45,7 @@ export default function LanguageOnboarding() {
 
                 <div className="mt-5 flex items-center gap-2 text-xs text-slate-500">
                     <Languages size={14} />
-                    Language can be changed anytime from the top navigation menu.
+                    {t('onboarding.hint')}
                 </div>
             </Card>
         </motion.div>

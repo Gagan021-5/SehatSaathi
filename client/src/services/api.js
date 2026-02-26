@@ -49,7 +49,13 @@ export const getModelInfo = () => api.get('/predict/model-info');
 export const getDiabetesHistory = () => api.get('/predict/diabetes/history');
 
 export const startChat = (data) => api.post('/chat/start', data);
-export const sendMessage = (data) => api.post('/chat/message', data);
+export const sendMessage = ({ message = '', history = [], language = 'en', sessionId } = {}) =>
+    api.post('/chat/message', {
+        message: typeof message === 'string' ? message : `${message ?? ''}`,
+        history: Array.isArray(history) ? history : [],
+        language: typeof language === 'string' && language.trim() ? language : 'en',
+        sessionId,
+    });
 export const getChatHistory = () => api.get('/chat/history');
 export const getEmergencyGuidance = (data) => api.post('/chat/emergency', data);
 
@@ -90,9 +96,19 @@ export const getHealthToolResults = () => api.get('/health-tools');
 export const saveHealthToolResult = (data) => api.post('/health-tools', data);
 export const deleteHealthToolResult = (id) => api.delete(`/health-tools/${id}`);
 
-export const searchHospitals = (params) => api.get('/hospitals/nearby', { params });
-export const searchPHCHospitals = (params) => api.get('/hospitals/phc', { params });
-export const getHospitalRoute = (params) => api.get('/hospitals/route', { params });
+export const getRuralPatients = () => api.get('/sms/patients');
+export const createRuralPatient = (data) => api.post('/sms/patients', data);
+export const updateRuralPatient = (id, data) => api.patch(`/sms/patients/${id}`, data);
+export const deleteRuralPatient = (id) => api.delete(`/sms/patients/${id}`);
+export const addRuralReminder = (id, data) => api.post(`/sms/patients/${id}/reminders`, data);
+export const updateRuralReminder = (id, reminderId, data) =>
+    api.patch(`/sms/patients/${id}/reminders/${reminderId}`, data);
+export const removeRuralReminder = (id, reminderId) =>
+    api.delete(`/sms/patients/${id}/reminders/${reminderId}`);
+
+export const searchHospitals = (params, config = {}) => api.get('/hospitals/nearby', { params, ...config });
+export const searchPHCHospitals = (params, config = {}) => api.get('/hospitals/phc', { params, ...config });
+export const getHospitalRoute = (params, config = {}) => api.get('/hospitals/route', { params, ...config });
 
 export const getMlHealth = () => mlApi.get('/health');
 

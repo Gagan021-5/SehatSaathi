@@ -1,0 +1,142 @@
+{
+  "app": {
+    "name": "SehatSaathi",
+    "tagline": "Your AI Health Companion"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "health": "My Vitals",
+    "predict": "Diabetes Check",
+    "chat": "AI Doctor",
+    "prescription": "Scan Prescription",
+    "firstAid": "First Aid Guide",
+    "medicines": "Pill Reminder",
+    "hospitals": "Find Hospitals",
+    "healthTools": "Health Calculators",
+    "ruralOutreach": "Rural Connect",
+    "reports": "Health Report",
+    "familyVault": "Family Vault",
+    "emergency": "Emergency SOS",
+    "profile": "Profile"
+  },
+  "sidebar": {
+    "groups": {
+      "overview": "Overview",
+      "smartFeatures": "Smart Features",
+      "dailyCareTools": "Daily Care & Tools",
+      "documents": "My Documents"
+    },
+    "premium": "Premium"
+  },
+  "navbar": {
+    "breadcrumbs": {
+      "workspace": "Workspace",
+      "screening": "Screening",
+      "consultation": "Consultation",
+      "records": "Records",
+      "vitals": "Vitals",
+      "locator": "Locator",
+      "rapidAccess": "Rapid Access",
+      "care": "Care",
+      "community": "Community",
+      "utilities": "Utilities",
+      "account": "Account"
+    },
+    "openSidebar": "Open sidebar",
+    "manageAccount": "Manage account"
+  },
+  "language": {
+    "selectorLabel": "Language",
+    "changed": "Language changed to {{language}}"
+  },
+  "onboarding": {
+    "chooseLanguage": "Choose your preferred language",
+    "hint": "Language can be changed anytime from the top navigation menu."
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "user": "User",
+    "yrs": "yrs"
+  },
+  "ruralOutreach": {
+    "campMode": "Camp Mode",
+    "title": "Rural Outreach Command",
+    "subtitle": "Manage village health camps, digitize records, and utilize AI triage offline.",
+    "syncStatusLabel": "Sync Status",
+    "sync": {
+      "online": "Online",
+      "offline": "Offline"
+    },
+    "metrics": {
+      "villagersRegistered": "Villagers Registered",
+      "needsReview": "Needs Review",
+      "cleared": "Cleared"
+    },
+    "empty": {
+      "title": "No villagers in roster yet",
+      "description": "Tap \"Add Patient\" to register your first camp participant."
+    },
+    "card": {
+      "village": "Village",
+      "chiefComplaint": "Chief Complaint",
+      "logVitals": "Log Vitals",
+      "voiceTriage": "Voice Triage",
+      "stopRecording": "Stop Recording",
+      "lastVitals": "Last Vitals",
+      "bloodPressureShort": "BP",
+      "sugarShort": "Sugar",
+      "tempShort": "Temp"
+    },
+    "buttons": {
+      "addPatient": "Add Patient",
+      "saveToRoster": "Save to Roster",
+      "saveVitals": "Save Vitals"
+    },
+    "modals": {
+      "registerTitle": "Register New Villager",
+      "logVitalsTitle": "Log Vitals",
+      "logVitalsFor": "Log Vitals • {{name}}"
+    },
+    "fields": {
+      "name": "Name",
+      "age": "Age",
+      "gender": "Gender",
+      "village": "Village",
+      "chiefComplaint": "Chief Complaint",
+      "bloodPressure": "Blood Pressure",
+      "sugar": "Sugar",
+      "temperature": "Temperature"
+    },
+    "placeholders": {
+      "name": "e.g. Lata Devi",
+      "age": "58",
+      "village": "e.g. Rampur Khurd",
+      "chiefComplaint": "Describe major symptoms...",
+      "bloodPressure": "e.g. 120/80",
+      "sugar": "e.g. 145 mg/dL",
+      "temperature": "e.g. 98.4 F"
+    },
+    "gender": {
+      "female": "Female",
+      "male": "Male",
+      "other": "Other"
+    },
+    "status": {
+      "needsReview": "Needs Review",
+      "cleared": "Cleared"
+    },
+    "toasts": {
+      "invalidPatient": "Please complete all patient fields with valid values.",
+      "patientAdded": "Patient added to offline village roster.",
+      "invalidVitals": "Please enter BP, Sugar, and Temp before saving.",
+      "vitalsSaved": "Vitals logged and patient marked as Cleared.",
+      "finishRecordingFirst": "Finish current recording before starting another.",
+      "audioNotSupported": "Audio recording is not supported on this device.",
+      "voiceCaptured": "Voice triage sample captured for offline translation.",
+      "recordingStarted": "Recording started. Tap again to stop.",
+      "microphoneError": "Unable to access microphone."
+    }
+  }
+}

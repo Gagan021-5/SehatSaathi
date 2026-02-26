@@ -1,17 +1,15 @@
 import { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { Brain, Droplets, Flame, HeartPulse, Save, Scale } from 'lucide-react';
-import { saveHealthToolResult } from '../services/api';
-import Card from '../components/common/Card';
+import { 
+    Brain, Droplets, Flame, HeartPulse, Save, Scale, 
+    CheckCircle2, ArrowRight, Activity, ChevronLeft, ChevronRight 
+} from 'lucide-react';
+import { saveHealthToolResult } from '../services/api'; // Adjust path as needed
 import PageTransition from '../components/common/PageTransition';
 
-const activityMultipliers = {
-    sedentary: 1.2,
-    light: 1.375,
-    moderate: 1.55,
-    active: 1.725,
-};
+// --- Constants & Logic ---
+const activityMultipliers = { sedentary: 1.2, light: 1.375, moderate: 1.55, active: 1.725 };
 
 const phq9Questions = [
     'Little interest or pleasure in doing things',
@@ -76,76 +74,54 @@ function getGadSeverity(score) {
     return 'Severe';
 }
 
-function Gauge({ value, max, label, suffix = '', color = '#2563eb' }) {
+// --- Premium Gauge Component ---
+function Gauge({ value, max, label, suffix = '', color = '#3b82f6', glowColor = 'rgba(59, 130, 246, 0.4)' }) {
     const safeValue = Math.max(0, Math.min(value, max));
     const percent = max > 0 ? (safeValue / max) * 100 : 0;
-    const radius = 42;
+    const radius = 46;
     const circumference = 2 * Math.PI * radius;
     const dashOffset = circumference - (percent / 100) * circumference;
 
     return (
-        <div className="flex flex-col items-center gap-2">
-            <svg width="120" height="120" viewBox="0 0 120 120" className="-rotate-90">
-                <circle cx="60" cy="60" r={radius} fill="none" stroke="#e2e8f0" strokeWidth="10" />
+        <div className="relative flex flex-col items-center justify-center p-4">
+            <svg width="140" height="140" viewBox="0 0 140 140" className="-rotate-90 drop-shadow-xl" style={{ filter: `drop-shadow(0 0 12px ${glowColor})` }}>
+                <circle cx="70" cy="70" r={radius} fill="none" stroke="#f1f5f9" strokeWidth="12" />
                 <motion.circle
-                    cx="60"
-                    cy="60"
-                    r={radius}
-                    fill="none"
-                    stroke={color}
-                    strokeWidth="10"
-                    strokeLinecap="round"
+                    cx="70" cy="70" r={radius} fill="none"
+                    stroke={color} strokeWidth="12" strokeLinecap="round"
                     strokeDasharray={circumference}
                     initial={{ strokeDashoffset: circumference }}
                     animate={{ strokeDashoffset: dashOffset }}
-                    transition={{ duration: 0.7, ease: 'easeOut' }}
+                    transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
                 />
             </svg>
-            <p className="-mt-20 text-2xl font-semibold tracking-tight text-slate-900">
-                {round(value, 1)}
-                {suffix}
-            </p>
-            <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center pt-2">
+                <p className="text-3xl font-black tracking-tighter text-slate-900">
+                    {round(value, 1)}<span className="text-sm font-bold text-slate-400">{suffix}</span>
+                </p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-1">{label}</p>
+            </div>
         </div>
     );
 }
 
-async function persistResult(payload) {
-    try {
-        await saveHealthToolResult(payload);
-        toast.success('Saved to dashboard.');
-    } catch {
-        const storageKey = 'sehat_saathi_health_tool_results';
-        const existing = JSON.parse(localStorage.getItem(storageKey) || '[]');
-        existing.unshift({ ...payload, savedAt: new Date().toISOString() });
-        localStorage.setItem(storageKey, JSON.stringify(existing.slice(0, 100)));
-        toast.success('Saved locally.');
-    }
-}
-
+// --- Main Component ---
 export default function HealthTools() {
     const [mainTab, setMainTab] = useState('physical');
 
+    // Physical State
     const [bmiInput, setBmiInput] = useState({ heightCm: 170, weightKg: 70 });
-    const [bmrInput, setBmrInput] = useState({
-        gender: 'male',
-        age: 30,
-        heightCm: 170,
-        weightKg: 70,
-        activity: 'moderate',
-    });
-    const [waterInput, setWaterInput] = useState({
-        weightKg: 70,
-        activity: 'moderate',
-        climate: 'normal',
-    });
+    const [bmrInput, setBmrInput] = useState({ gender: 'male', age: 30, heightCm: 170, weightKg: 70, activity: 'moderate' });
+    const [waterInput, setWaterInput] = useState({ weightKg: 70, activity: 'moderate', climate: 'normal' });
 
+    // Mental State
     const [activeScreener, setActiveScreener] = useState('phq9');
     const [phqStep, setPhqStep] = useState(0);
     const [gadStep, setGadStep] = useState(0);
     const [phqAnswers, setPhqAnswers] = useState(Array(phq9Questions.length).fill(null));
     const [gadAnswers, setGadAnswers] = useState(Array(gad7Questions.length).fill(null));
 
+    // Calculations
     const bmiValue = useMemo(() => {
         const heightM = Number(bmiInput.heightCm) / 100;
         const weight = Number(bmiInput.weightKg);
@@ -155,398 +131,334 @@ export default function HealthTools() {
     const bmiCategory = getBmiCategory(bmiValue);
 
     const bmrBase = useMemo(() => {
-        const weight = Number(bmrInput.weightKg);
-        const height = Number(bmrInput.heightCm);
-        const age = Number(bmrInput.age);
-        if (!weight || !height || !age) return 0;
-        const raw = 10 * weight + 6.25 * height - 5 * age + (bmrInput.gender === 'male' ? 5 : -161);
+        const { weightKg, heightCm, age, gender } = bmrInput;
+        if (!weightKg || !heightCm || !age) return 0;
+        const raw = 10 * weightKg + 6.25 * heightCm - 5 * age + (gender === 'male' ? 5 : -161);
         return Math.max(0, raw);
     }, [bmrInput]);
 
-    const dailyCalories = useMemo(() => {
-        const multiplier = activityMultipliers[bmrInput.activity] || activityMultipliers.moderate;
-        return bmrBase * multiplier;
-    }, [bmrBase, bmrInput.activity]);
+    const dailyCalories = useMemo(() => bmrBase * (activityMultipliers[bmrInput.activity] || 1.55), [bmrBase, bmrInput.activity]);
 
     const waterLiters = useMemo(() => {
-        const weight = Number(waterInput.weightKg) || 0;
-        const base = weight * 0.033;
-        const activityBoost = waterInput.activity === 'active' ? 0.6 : waterInput.activity === 'moderate' ? 0.35 : 0.15;
-        const climateBoost = waterInput.climate === 'hot' ? 0.5 : waterInput.climate === 'cold' ? -0.2 : 0;
-        return Math.max(1.5, base + activityBoost + climateBoost);
+        const base = (Number(waterInput.weightKg) || 0) * 0.033;
+        const actBoost = waterInput.activity === 'active' ? 0.6 : waterInput.activity === 'moderate' ? 0.35 : 0.15;
+        const climBoost = waterInput.climate === 'hot' ? 0.5 : waterInput.climate === 'cold' ? -0.2 : 0;
+        return Math.max(1.5, base + actBoost + climBoost);
     }, [waterInput]);
 
+    // Mental Logic
     const isPhq = activeScreener === 'phq9';
     const questions = isPhq ? phq9Questions : gad7Questions;
     const answers = isPhq ? phqAnswers : gadAnswers;
     const step = isPhq ? phqStep : gadStep;
-    const score = answers.reduce((sum, value) => sum + (Number(value) || 0), 0);
-    const completed = answers.every((value) => value !== null);
+    const score = answers.reduce((sum, val) => sum + (Number(val) || 0), 0);
+    const completed = answers.every((val) => val !== null);
     const severity = isPhq ? getPhqSeverity(score) : getGadSeverity(score);
 
     function recordAnswer(value) {
-        const currentStep = step;
         if (isPhq) {
-            setPhqAnswers((prev) => {
-                const next = [...prev];
-                next[currentStep] = value;
-                return next;
-            });
-            if (currentStep < phq9Questions.length - 1) setTimeout(() => setPhqStep(currentStep + 1), 120);
+            const next = [...phqAnswers]; next[step] = value; setPhqAnswers(next);
+            if (step < questions.length - 1) setTimeout(() => setPhqStep(step + 1), 250);
         } else {
-            setGadAnswers((prev) => {
-                const next = [...prev];
-                next[currentStep] = value;
-                return next;
-            });
-            if (currentStep < gad7Questions.length - 1) setTimeout(() => setGadStep(currentStep + 1), 120);
+            const next = [...gadAnswers]; next[step] = value; setGadAnswers(next);
+            if (step < questions.length - 1) setTimeout(() => setGadStep(step + 1), 250);
         }
     }
 
-    function moveStep(direction) {
-        if (isPhq) {
-            setPhqStep((prev) => Math.max(0, Math.min(phq9Questions.length - 1, prev + direction)));
-        } else {
-            setGadStep((prev) => Math.max(0, Math.min(gad7Questions.length - 1, prev + direction)));
+    function moveStep(dir) {
+        isPhq ? setPhqStep(p => Math.max(0, Math.min(questions.length - 1, p + dir))) 
+              : setGadStep(p => Math.max(0, Math.min(questions.length - 1, p + dir)));
+    }
+
+    async function persistResult(payload) {
+        try {
+            await saveHealthToolResult(payload);
+            toast.success('Saved to clinical dashboard.');
+        } catch {
+            const key = 'sehat_saathi_health_tool_results';
+            const existing = JSON.parse(localStorage.getItem(key) || '[]');
+            existing.unshift({ ...payload, savedAt: new Date().toISOString() });
+            localStorage.setItem(key, JSON.stringify(existing.slice(0, 100)));
+            toast.success('Saved locally (Offline mode).');
         }
     }
 
     return (
-        <PageTransition className="mx-auto max-w-7xl space-y-4">
-            <Card className="p-6 md:p-7 bg-gradient-to-r from-zinc-900 via-blue-900 to-teal-700 text-white border-transparent">
-                <div className="flex items-center justify-between gap-4">
+        <PageTransition className="mx-auto max-w-[1400px] space-y-8 pb-12 px-2">
+            {/* Premium Header */}
+            <header className="relative overflow-hidden rounded-[2.5rem] bg-slate-900 px-8 py-12 text-white shadow-2xl shadow-slate-900/20">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.3),transparent_50%)]" />
+                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div>
-                        <p className="text-sm text-blue-100">Health Calculators & Screening Suite</p>
-                        <h1 className="mt-1 text-3xl font-semibold tracking-tight text-white">Health Tools</h1>
-                        <p className="mt-2 max-w-2xl text-sm text-blue-100">
-                            Physical vitals calculators and validated self-screening questionnaires running fully client-side.
+                        <div className="inline-flex items-center gap-2 rounded-full bg-blue-500/20 px-3 py-1 text-xs font-bold uppercase tracking-wider text-blue-300 ring-1 ring-inset ring-blue-500/30 mb-4">
+                            <Activity size={14} /> Clinical Utilities
+                        </div>
+                        <h1 className="text-4xl text-white font-black tracking-tight lg:text-5xl">
+                            Health <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-teal-300">Metrics Suite</span>
+                        </h1>
+                        <p className="mt-3 max-w-xl text-slate-400 text-lg">
+                            Evaluate physical vitals and conduct validated psychological screenings securely on your device.
                         </p>
                     </div>
-                    <div className="rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs text-blue-50">
-                        Local calculations • No paid AI dependency
-                    </div>
                 </div>
-            </Card>
+            </header>
 
-            <Card className="p-3">
-                <div className="grid grid-cols-2 gap-2">
-                    <button
-                        type="button"
-                        onClick={() => setMainTab('physical')}
-                        className={`rounded-xl px-4 py-2.5 text-sm font-semibold ${
-                            mainTab === 'physical'
-                                ? 'bg-gradient-to-r from-blue-600 to-teal-500 text-white'
-                                : 'bg-white text-slate-600 ring-1 ring-slate-200'
-                        }`}
-                    >
-                        Physical Vitals
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setMainTab('mental')}
-                        className={`rounded-xl px-4 py-2.5 text-sm font-semibold ${
-                            mainTab === 'mental'
-                                ? 'bg-gradient-to-r from-blue-600 to-teal-500 text-white'
-                                : 'bg-white text-slate-600 ring-1 ring-slate-200'
-                        }`}
-                    >
-                        Mental Health
-                    </button>
-                </div>
-            </Card>
-
-            {mainTab === 'physical' ? (
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-                    <Card className="p-5">
-                        <div className="flex items-center gap-2">
-                            <Scale size={16} className="text-blue-600" />
-                            <h2 className="text-base font-semibold tracking-tight text-slate-900">BMI Calculator</h2>
-                        </div>
-                        <div className="mt-3 space-y-2">
-                            <input
-                                type="number"
-                                min="50"
-                                value={bmiInput.heightCm}
-                                onChange={(event) => setBmiInput((prev) => ({ ...prev, heightCm: Number(event.target.value) }))}
-                                placeholder="Height (cm)"
-                            />
-                            <input
-                                type="number"
-                                min="10"
-                                value={bmiInput.weightKg}
-                                onChange={(event) => setBmiInput((prev) => ({ ...prev, weightKg: Number(event.target.value) }))}
-                                placeholder="Weight (kg)"
-                            />
-                        </div>
-                        <div className="mt-4">
-                            <Gauge value={bmiValue} max={40} label={`BMI • ${bmiCategory}`} color="#2563eb" />
-                        </div>
+            {/* Segmented Control */}
+            <div className="flex justify-center">
+                <div className="flex p-1.5 space-x-2 bg-slate-100/80 rounded-2xl backdrop-blur-xl border border-slate-200/60 shadow-inner">
+                    {['physical', 'mental'].map((tab) => (
                         <button
-                            type="button"
-                            onClick={() =>
-                                persistResult({
-                                    type: 'calculator',
-                                    title: 'BMI Calculator',
-                                    score: round(bmiValue, 1),
-                                    severity: bmiCategory,
-                                    payload: bmiInput,
-                                })
-                            }
-                            className="mt-3 inline-flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white"
+                            key={tab}
+                            onClick={() => setMainTab(tab)}
+                            className={`relative px-8 py-3 text-sm font-bold capitalize tracking-wide rounded-xl transition-colors duration-300 ${
+                                mainTab === tab ? 'text-white' : 'text-slate-500 hover:text-slate-700'
+                            }`}
                         >
-                            <Save size={14} /> Save to Dashboard
-                        </button>
-                    </Card>
-
-                    <Card className="p-5">
-                        <div className="flex items-center gap-2">
-                            <Flame size={16} className="text-orange-600" />
-                            <h2 className="text-base font-semibold tracking-tight text-slate-900">Calorie / BMR</h2>
-                        </div>
-                        <div className="mt-3 grid grid-cols-2 gap-2">
-                            <select
-                                value={bmrInput.gender}
-                                onChange={(event) => setBmrInput((prev) => ({ ...prev, gender: event.target.value }))}
-                            >
-                                <option value="male">Male</option>
-                                <option value="female">Female</option>
-                            </select>
-                            <input
-                                type="number"
-                                value={bmrInput.age}
-                                onChange={(event) => setBmrInput((prev) => ({ ...prev, age: Number(event.target.value) }))}
-                                placeholder="Age"
-                            />
-                            <input
-                                type="number"
-                                value={bmrInput.heightCm}
-                                onChange={(event) => setBmrInput((prev) => ({ ...prev, heightCm: Number(event.target.value) }))}
-                                placeholder="Height cm"
-                            />
-                            <input
-                                type="number"
-                                value={bmrInput.weightKg}
-                                onChange={(event) => setBmrInput((prev) => ({ ...prev, weightKg: Number(event.target.value) }))}
-                                placeholder="Weight kg"
-                            />
-                        </div>
-                        <div className="mt-2">
-                            <select
-                                value={bmrInput.activity}
-                                onChange={(event) => setBmrInput((prev) => ({ ...prev, activity: event.target.value }))}
-                            >
-                                <option value="sedentary">Sedentary</option>
-                                <option value="light">Lightly Active</option>
-                                <option value="moderate">Moderately Active</option>
-                                <option value="active">Very Active</option>
-                            </select>
-                        </div>
-                        <div className="mt-4">
-                            <Gauge value={dailyCalories} max={3500} label="Daily Calories" suffix=" kcal" color="#ea580c" />
-                        </div>
-                        <p className="text-xs text-slate-500">BMR: {round(bmrBase, 0)} kcal/day (Mifflin-St Jeor)</p>
-                        <button
-                            type="button"
-                            onClick={() =>
-                                persistResult({
-                                    type: 'calculator',
-                                    title: 'Calorie/BMR Calculator',
-                                    score: round(dailyCalories, 0),
-                                    severity: 'Minimal',
-                                    payload: { ...bmrInput, bmrBase: round(bmrBase, 1) },
-                                })
-                            }
-                            className="mt-3 inline-flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white"
-                        >
-                            <Save size={14} /> Save to Dashboard
-                        </button>
-                    </Card>
-
-                    <Card className="p-5">
-                        <div className="flex items-center gap-2">
-                            <Droplets size={16} className="text-cyan-600" />
-                            <h2 className="text-base font-semibold tracking-tight text-slate-900">Water Intake</h2>
-                        </div>
-                        <div className="mt-3 space-y-2">
-                            <input
-                                type="number"
-                                value={waterInput.weightKg}
-                                onChange={(event) => setWaterInput((prev) => ({ ...prev, weightKg: Number(event.target.value) }))}
-                                placeholder="Weight (kg)"
-                            />
-                            <select
-                                value={waterInput.activity}
-                                onChange={(event) => setWaterInput((prev) => ({ ...prev, activity: event.target.value }))}
-                            >
-                                <option value="light">Low Activity</option>
-                                <option value="moderate">Moderate Activity</option>
-                                <option value="active">High Activity</option>
-                            </select>
-                            <select
-                                value={waterInput.climate}
-                                onChange={(event) => setWaterInput((prev) => ({ ...prev, climate: event.target.value }))}
-                            >
-                                <option value="cold">Cold Climate</option>
-                                <option value="normal">Normal Climate</option>
-                                <option value="hot">Hot Climate</option>
-                            </select>
-                        </div>
-                        <div className="mt-4">
-                            <Gauge value={waterLiters} max={5} label="Daily Water" suffix=" L" color="#0891b2" />
-                        </div>
-                        <button
-                            type="button"
-                            onClick={() =>
-                                persistResult({
-                                    type: 'calculator',
-                                    title: 'Water Intake Calculator',
-                                    score: round(waterLiters, 1),
-                                    severity: 'Minimal',
-                                    payload: waterInput,
-                                })
-                            }
-                            className="mt-3 inline-flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white"
-                        >
-                            <Save size={14} /> Save to Dashboard
-                        </button>
-                    </Card>
-                </div>
-            ) : (
-                <div className="space-y-4">
-                    <Card className="p-3">
-                        <div className="grid grid-cols-2 gap-2">
-                            <button
-                                type="button"
-                                onClick={() => setActiveScreener('phq9')}
-                                className={`rounded-xl px-4 py-2 text-sm font-semibold ${
-                                    activeScreener === 'phq9'
-                                        ? 'bg-gradient-to-r from-blue-600 to-teal-500 text-white'
-                                        : 'bg-white text-slate-600 ring-1 ring-slate-200'
-                                }`}
-                            >
-                                PHQ-9
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setActiveScreener('gad7')}
-                                className={`rounded-xl px-4 py-2 text-sm font-semibold ${
-                                    activeScreener === 'gad7'
-                                        ? 'bg-gradient-to-r from-blue-600 to-teal-500 text-white'
-                                        : 'bg-white text-slate-600 ring-1 ring-slate-200'
-                                }`}
-                            >
-                                GAD-7
-                            </button>
-                        </div>
-                    </Card>
-
-                    <Card className="p-6">
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm text-slate-500">
-                                Question {step + 1} of {questions.length}
-                            </p>
-                            <div className="h-2 w-40 rounded-full bg-slate-100 overflow-hidden">
+                            {mainTab === tab && (
                                 <motion.div
-                                    className="h-full bg-gradient-to-r from-blue-600 to-teal-500"
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${((step + 1) / questions.length) * 100}%` }}
+                                    layoutId="mainTabIndicator"
+                                    className="absolute inset-0 bg-slate-900 rounded-xl shadow-lg"
+                                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                 />
-                            </div>
-                        </div>
+                            )}
+                            <span className="relative z-10 flex items-center gap-2">
+                                {tab === 'physical' ? <HeartPulse size={16} /> : <Brain size={16} />}
+                                {tab === 'physical' ? 'Physical Vitals' : 'Mental Health'}
+                            </span>
+                        </button>
+                    ))}
+                </div>
+            </div>
 
-                        <AnimatePresence mode="wait">
-                            <motion.div
-                                key={`${activeScreener}-${step}`}
-                                initial={{ opacity: 0, x: 16 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -16 }}
-                                transition={{ duration: 0.2 }}
-                                className="mt-4"
-                            >
-                                <h2 className="text-xl font-semibold tracking-tight text-slate-900">{questions[step]}</h2>
-                                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                                    {answerOptions.map((option) => {
-                                        const selected = answers[step] === option.value;
-                                        return (
-                                            <button
-                                                key={option.label}
-                                                type="button"
-                                                onClick={() => recordAnswer(option.value)}
-                                                className={`rounded-xl border px-4 py-4 text-left text-sm font-medium transition-all ${
-                                                    selected
-                                                        ? 'border-blue-300 bg-blue-50 text-blue-700 shadow-lg shadow-blue-500/10'
-                                                        : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                                                }`}
-                                            >
-                                                {option.label}
-                                            </button>
-                                        );
-                                    })}
+            {/* Content Area */}
+            <AnimatePresence mode="wait">
+                {mainTab === 'physical' ? (
+                    <motion.div 
+                        key="physical"
+                        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+                        className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+                    >
+                        {/* BMI Card */}
+                        <div className="flex flex-col rounded-[2rem] bg-white p-6 shadow-xl shadow-slate-200/40 border border-slate-100 hover:shadow-2xl transition-shadow">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="h-12 w-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                                    <Scale size={24} />
                                 </div>
-                            </motion.div>
-                        </AnimatePresence>
-
-                        <div className="mt-5 flex items-center justify-between">
-                            <button
-                                type="button"
-                                onClick={() => moveStep(-1)}
-                                disabled={step === 0}
-                                className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 disabled:opacity-45"
-                            >
-                                Previous
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => moveStep(1)}
-                                disabled={step === questions.length - 1}
-                                className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-45"
-                            >
-                                Next
-                            </button>
-                        </div>
-                    </Card>
-
-                    {completed ? (
-                        <Card className="p-5">
-                            <div className="grid grid-cols-1 md:grid-cols-[auto,1fr] gap-6 items-center">
-                                <Gauge
-                                    value={score}
-                                    max={isPhq ? 27 : 21}
-                                    label={`${isPhq ? 'PHQ-9' : 'GAD-7'} Score`}
-                                    color="#0d9488"
-                                />
                                 <div>
-                                    <div className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1 text-sm font-semibold text-teal-700">
-                                        <Brain size={14} /> {severity}
+                                    <h2 className="text-lg font-bold text-slate-900">BMI Index</h2>
+                                    <p className="text-xs text-slate-500 font-medium">Body Mass Calculator</p>
+                                </div>
+                            </div>
+                            <div className="space-y-3 flex-1">
+                                <InputField label="Height (cm)" value={bmiInput.heightCm} onChange={(v) => setBmiInput(p => ({ ...p, heightCm: v }))} />
+                                <InputField label="Weight (kg)" value={bmiInput.weightKg} onChange={(v) => setBmiInput(p => ({ ...p, weightKg: v }))} />
+                            </div>
+                            <div className="py-6"><Gauge value={bmiValue} max={40} label={bmiCategory} color="#6366f1" glowColor="rgba(99,102,241,0.4)" /></div>
+                            <SaveButton onClick={() => persistResult({ type: 'calculator', title: 'BMI', score: round(bmiValue, 1), severity: bmiCategory, payload: bmiInput })} />
+                        </div>
+
+                        {/* BMR Card */}
+                        <div className="flex flex-col rounded-[2rem] bg-white p-6 shadow-xl shadow-slate-200/40 border border-slate-100 hover:shadow-2xl transition-shadow">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="h-12 w-12 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center">
+                                    <Flame size={24} />
+                                </div>
+                                <div>
+                                    <h2 className="text-lg font-bold text-slate-900">Metabolic Rate</h2>
+                                    <p className="text-xs text-slate-500 font-medium">Daily Calorie Target</p>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3 flex-1">
+                                <SelectField value={bmrInput.gender} onChange={(v) => setBmrInput(p => ({ ...p, gender: v }))} options={[{l:'Male',v:'male'}, {l:'Female',v:'female'}]} />
+                                <InputField label="Age" value={bmrInput.age} onChange={(v) => setBmrInput(p => ({ ...p, age: v }))} />
+                                <InputField label="Height (cm)" value={bmrInput.heightCm} onChange={(v) => setBmrInput(p => ({ ...p, heightCm: v }))} />
+                                <InputField label="Weight (kg)" value={bmrInput.weightKg} onChange={(v) => setBmrInput(p => ({ ...p, weightKg: v }))} />
+                                <div className="col-span-2">
+                                    <SelectField value={bmrInput.activity} onChange={(v) => setBmrInput(p => ({ ...p, activity: v }))} options={[{l:'Sedentary',v:'sedentary'}, {l:'Lightly Active',v:'light'}, {l:'Moderate',v:'moderate'}, {l:'Very Active',v:'active'}]} />
+                                </div>
+                            </div>
+                            <div className="py-2"><Gauge value={dailyCalories} max={4000} label="Kcal / Day" color="#f97316" glowColor="rgba(249,115,22,0.4)" /></div>
+                            <SaveButton onClick={() => persistResult({ type: 'calculator', title: 'BMR', score: round(dailyCalories, 0), severity: 'Minimal', payload: bmrInput })} />
+                        </div>
+
+                        {/* Water Card */}
+                        <div className="flex flex-col rounded-[2rem] bg-white p-6 shadow-xl shadow-slate-200/40 border border-slate-100 hover:shadow-2xl transition-shadow">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="h-12 w-12 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center">
+                                    <Droplets size={24} />
+                                </div>
+                                <div>
+                                    <h2 className="text-lg font-bold text-slate-900">Hydration</h2>
+                                    <p className="text-xs text-slate-500 font-medium">Daily Water Target</p>
+                                </div>
+                            </div>
+                            <div className="space-y-3 flex-1">
+                                <InputField label="Weight (kg)" value={waterInput.weightKg} onChange={(v) => setWaterInput(p => ({ ...p, weightKg: v }))} />
+                                <SelectField value={waterInput.activity} onChange={(v) => setWaterInput(p => ({ ...p, activity: v }))} options={[{l:'Low Activity',v:'light'}, {l:'Moderate Activity',v:'moderate'}, {l:'High Activity',v:'active'}]} />
+                                <SelectField value={waterInput.climate} onChange={(v) => setWaterInput(p => ({ ...p, climate: v }))} options={[{l:'Cold Climate',v:'cold'}, {l:'Normal Climate',v:'normal'}, {l:'Hot Climate',v:'hot'}]} />
+                            </div>
+                            <div className="py-6"><Gauge value={waterLiters} max={6} label="Liters / Day" color="#06b6d4" glowColor="rgba(6,182,212,0.4)" /></div>
+                            <SaveButton onClick={() => persistResult({ type: 'calculator', title: 'Hydration', score: round(waterLiters, 1), severity: 'Minimal', payload: waterInput })} />
+                        </div>
+                    </motion.div>
+                ) : (
+                    <motion.div 
+                        key="mental"
+                        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+                        className="max-w-4xl mx-auto space-y-6"
+                    >
+                        {/* Screener Tabs */}
+                        <div className="flex p-1.5 space-x-2 bg-slate-100 rounded-2xl w-fit mx-auto">
+                            {['phq9', 'gad7'].map((scr) => (
+                                <button
+                                    key={scr} onClick={() => setActiveScreener(scr)}
+                                    className={`relative px-6 py-2 text-xs font-bold uppercase tracking-widest rounded-xl transition-all ${activeScreener === scr ? 'text-slate-900 shadow-sm bg-white' : 'text-slate-500 hover:text-slate-700'}`}
+                                >
+                                    {scr === 'phq9' ? 'PHQ-9 (Depression)' : 'GAD-7 (Anxiety)'}
+                                </button>
+                            ))}
+                        </div>
+
+                        {!completed ? (
+                            <div className="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-2xl shadow-slate-200/50 border border-slate-100">
+                                <div className="mb-10">
+                                    <div className="flex justify-between items-end mb-4">
+                                        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Question {step + 1} of {questions.length}</p>
+                                        <p className="text-sm font-bold text-blue-600">{Math.round(((step) / questions.length) * 100)}%</p>
                                     </div>
-                                    <p className="mt-3 text-sm text-slate-600">{recommendationMap[severity]}</p>
-                                    <p className="mt-2 text-xs text-slate-500">
-                                        This is a screening tool, not a diagnosis. Consult a clinician for formal assessment.
-                                    </p>
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            persistResult({
-                                                type: 'screening',
-                                                title: isPhq ? 'PHQ-9 Depression Screener' : 'GAD-7 Anxiety Screener',
-                                                score,
-                                                severity,
-                                                payload: {
-                                                    screener: activeScreener,
-                                                    answers,
-                                                },
-                                            })
-                                        }
-                                        className="mt-4 inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+                                    <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                                        <motion.div 
+                                            className="h-full bg-blue-600 rounded-full"
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${((step) / questions.length) * 100}%` }}
+                                            transition={{ ease: "easeInOut" }}
+                                        />
+                                    </div>
+                                </div>
+
+                                <AnimatePresence mode="wait">
+                                    <motion.div
+                                        key={`${activeScreener}-${step}`}
+                                        initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+                                        transition={{ duration: 0.25 }}
                                     >
-                                        <HeartPulse size={15} /> Save to Dashboard
+                                        <h2 className="text-2xl md:text-4xl font-black text-slate-900 tracking-tight leading-tight mb-8">
+                                            {questions[step]}
+                                        </h2>
+                                        
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            {answerOptions.map((opt) => {
+                                                const isSelected = answers[step] === opt.value;
+                                                return (
+                                                    <button
+                                                        key={opt.label} onClick={() => recordAnswer(opt.value)}
+                                                        className={`group flex items-center justify-between p-5 rounded-2xl border-2 transition-all duration-200 outline-none ${
+                                                            isSelected ? 'border-blue-600 bg-blue-50/50 shadow-lg shadow-blue-600/10' : 'border-slate-100 bg-white hover:border-blue-200 hover:bg-slate-50'
+                                                        }`}
+                                                    >
+                                                        <span className={`text-base font-bold ${isSelected ? 'text-blue-700' : 'text-slate-700 group-hover:text-slate-900'}`}>
+                                                            {opt.label}
+                                                        </span>
+                                                        <div className={`h-6 w-6 rounded-full border-2 flex items-center justify-center transition-colors ${isSelected ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-300'}`}>
+                                                            {isSelected && <CheckCircle2 size={14} />}
+                                                        </div>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </motion.div>
+                                </AnimatePresence>
+
+                                <div className="mt-12 flex justify-between items-center pt-6 border-t border-slate-100">
+                                    <button 
+                                        onClick={() => moveStep(-1)} disabled={step === 0}
+                                        className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-900 disabled:opacity-30 transition-colors"
+                                    >
+                                        <ChevronLeft size={16} /> Previous
+                                    </button>
+                                    <button 
+                                        onClick={() => moveStep(1)} disabled={step === questions.length - 1}
+                                        className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-900 disabled:opacity-30 transition-colors"
+                                    >
+                                        Next <ChevronRight size={16} />
                                     </button>
                                 </div>
                             </div>
-                        </Card>
-                    ) : null}
-                </div>
-            )}
+                        ) : (
+                            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-2xl border border-slate-100">
+                                <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-12 items-center">
+                                    <div className="flex justify-center border-r border-slate-100 pr-0 md:pr-12">
+                                        <Gauge value={score} max={isPhq ? 27 : 21} label={`${activeScreener.toUpperCase()} Score`} color="#8b5cf6" glowColor="rgba(139,92,246,0.4)" />
+                                    </div>
+                                    <div className="space-y-6">
+                                        <div>
+                                            <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400 mb-2">Clinical Indication</h3>
+                                            <div className="inline-flex items-center gap-2 rounded-2xl bg-indigo-50 px-4 py-2 text-lg font-black text-indigo-700">
+                                                <Brain size={20} /> {severity} Severity
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400 mb-2">Recommendation</h3>
+                                            <p className="text-lg font-medium text-slate-700 leading-relaxed">{recommendationMap[severity]}</p>
+                                        </div>
+                                        <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row gap-4">
+                                            <button 
+                                                onClick={() => persistResult({ type: 'screening', title: isPhq ? 'PHQ-9' : 'GAD-7', score, severity, payload: { screener: activeScreener, answers } })}
+                                                className="flex-1 h-14 rounded-2xl bg-slate-900 text-white font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition-all active:scale-95 shadow-xl shadow-slate-900/20"
+                                            >
+                                                <Save size={18} /> Save to Dashboard
+                                            </button>
+                                            <button 
+                                                onClick={() => { isPhq ? setPhqAnswers(Array(9).fill(null)) : setGadAnswers(Array(7).fill(null)); moveStep(-step); }}
+                                                className="flex-1 h-14 rounded-2xl bg-slate-100 text-slate-700 font-bold flex items-center justify-center hover:bg-slate-200 transition-all active:scale-95"
+                                            >
+                                                Retake Assessment
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </PageTransition>
+    );
+}
+
+// --- Micro UI Components ---
+function InputField({ label, value, onChange }) {
+    return (
+        <div className="relative">
+            <input 
+                type="number" value={value} onChange={(e) => onChange(Number(e.target.value))}
+                className="peer w-full h-14 rounded-xl border border-slate-200 bg-slate-50 px-4 pt-4 text-sm font-bold text-slate-900 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 hover:bg-slate-100"
+            />
+            <label className="absolute left-4 top-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 transition-all peer-focus:text-blue-500">
+                {label}
+            </label>
+        </div>
+    );
+}
+
+function SelectField({ value, onChange, options }) {
+    return (
+        <select 
+            value={value} onChange={(e) => onChange(e.target.value)}
+            className="w-full h-14 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-bold text-slate-700 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 hover:bg-slate-100 appearance-none"
+        >
+            {options.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
+        </select>
+    );
+}
+
+function SaveButton({ onClick }) {
+    return (
+        <button 
+            onClick={onClick}
+            className="w-full h-12 mt-4 rounded-xl bg-slate-900 text-white text-sm font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition-all active:scale-95 shadow-lg shadow-slate-900/10"
+        >
+            <Save size={16} /> Save to Dashboard
+        </button>
     );
 }

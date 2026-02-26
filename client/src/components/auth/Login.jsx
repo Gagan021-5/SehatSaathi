@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { Eye, EyeOff, Loader2, Lock, Mail, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import AuthSplitShell from './AuthSplitShell';
 
 const firebaseErrors = {
@@ -31,6 +32,7 @@ const itemVariants = {
 
 export default function Login() {
     const { login, loginWithGoogle } = useAuth();
+    const { t } = useLanguage();
     const navigate = useNavigate();
 
     const [email, setEmail] = useState('');
@@ -89,7 +91,7 @@ export default function Login() {
                     transition={{ delay: 0.6 }}
                     className="mt-8 text-center text-xs font-medium text-slate-400 uppercase tracking-widest"
                 >
-                    New to SehatSaathi?{' '}
+                    New to {t('app.name')}?{' '}
                     <Link to="/register" className="text-blue-600 hover:text-blue-700 transition-all font-bold">
                         Initialize Account
                     </Link>
