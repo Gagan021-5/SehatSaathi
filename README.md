@@ -2,7 +2,7 @@
 
 <img src="./client/public/ShayakSaarthi.jpeg" alt="SehatSaathi Logo" width="120" style="border-radius: 50%; margin-bottom: 12px;" />
 
-<img src="https://readme-typing-svg.demolab.com?font=Sora&weight=700&size=32&duration=3000&pause=1000&color=3B82F6&center=true&vCenter=true&width=700&lines=🏥+SehatSaathi;AI-First+Healthcare+for+India;सेहत+साथी+-+आपका+AI+स्वास्थ्य+साथी" alt="SehatSaathi Typing SVG" />
+![SehatSaathi Animated Header](https://readme-typing-svg.demolab.com?font=Sora&weight=700&size=32&duration=3000&pause=1000&color=3B82F6&center=true&vCenter=true&width=700&lines=🏥+SehatSaathi;AI-First+Healthcare+for+India;सेहत+साथी+-+आपका+AI+स्वास्थ्य+साथी)
 
 
 <br/>
@@ -59,6 +59,14 @@
 | 👨‍👩‍👧‍👦 Fragmented family health data | Centralized Family Vault across devices |
 
 ---
+
+## 📸 App Interface
+
+<p align="center">
+  <img src="https://i.postimg.cc/gJhgphc5/Screenshot-2026-02-28-220043.png" alt="App Screenshot 1" width="49%" />
+  &nbsp;
+  <img src="https://i.postimg.cc/T1Cgv2bQ/Screenshot-2026-02-28-230750.png" alt="App Screenshot 2" width="49%" />
+</p>
 
 ## ✨ Features
 
