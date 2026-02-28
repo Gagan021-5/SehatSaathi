@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const ML_URL = process.env.ML_SERVICE_URL || 'http://localhost:5001';
+const ML_URL = process.env.ML_SERVICE_URL || 'https://mlgeek.onrender.com';
+
 
 export async function predictDiabetes(data) {
     try {
