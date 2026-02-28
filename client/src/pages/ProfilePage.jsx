@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
-import { 
-    Loader2, Save, User, Phone, Calendar, Droplet, 
-    Activity, AlertCircle, ShieldCheck, Mail, Users 
+import {
+    Loader2, Save, User, Phone, Calendar, Droplet,
+    Activity, AlertCircle, ShieldCheck, Mail, Users
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import PageTransition from '../components/common/PageTransition';
@@ -69,20 +69,28 @@ export default function ProfilePage() {
 
     return (
         <PageTransition className="mx-auto max-w-[1000px] space-y-8 pb-12 px-2 md:px-4">
-            
+
             {/* Premium Hero Identity Card */}
             <header className="relative overflow-hidden rounded-[2.5rem] bg-slate-900 px-6 py-10 md:px-10 md:py-12 text-white shadow-2xl shadow-slate-900/20">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.25),transparent_60%)]" />
                 <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-8">
                     <div className="relative shrink-0">
-                        <div className="h-28 w-28 rounded-[2rem] bg-gradient-to-br from-blue-500 to-indigo-600 shadow-2xl shadow-blue-500/30 flex items-center justify-center text-4xl font-black border-4 border-slate-800">
-                            {userInitial}
+                        <div className="h-28 w-28 rounded-[2rem] bg-gradient-to-br from-blue-500 to-indigo-600 shadow-2xl shadow-blue-500/30 flex items-center justify-center text-4xl font-black border-4 border-slate-800 overflow-hidden">
+                            {firebaseUser?.photoURL || user?.photoURL ? (
+                                <img
+                                    src={firebaseUser?.photoURL || user?.photoURL}
+                                    alt="Profile"
+                                    className="h-full w-full object-cover"
+                                />
+                            ) : (
+                                userInitial
+                            )}
                         </div>
                         <div className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full bg-emerald-500 border-4 border-slate-900 flex items-center justify-center shadow-lg">
                             <ShieldCheck size={14} className="text-white" />
                         </div>
                     </div>
-                    
+
                     <div className="flex-1">
                         <div className="inline-flex items-center gap-2 rounded-full bg-blue-500/20 px-3 py-1 text-xs font-bold uppercase tracking-wider text-blue-300 ring-1 ring-inset ring-blue-500/30 mb-3">
                             <User size={14} /> Secure Identity
@@ -100,7 +108,7 @@ export default function ProfilePage() {
 
             <form onSubmit={handleSave} className="space-y-6">
                 <motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-6">
-                    
+
                     {/* Demographics Section */}
                     <motion.div variants={itemVariants} className="rounded-[2.5rem] bg-white p-6 md:p-8 shadow-xl shadow-slate-200/40 border border-slate-100">
                         <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
@@ -114,26 +122,26 @@ export default function ProfilePage() {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <InputField 
-                                icon={<User size={18} />} label="Legal Name" value={form.name} 
-                                onChange={(v) => setField('name', v)} placeholder="First & Last Name" 
+                            <InputField
+                                icon={<User size={18} />} label="Legal Name" value={form.name}
+                                onChange={(v) => setField('name', v)} placeholder="First & Last Name"
                             />
-                            <InputField 
-                                icon={<Phone size={18} />} label="Contact Number" value={form.phone} 
-                                onChange={(v) => setField('phone', v)} placeholder="+91 XXXXX XXXXX" type="tel" 
+                            <InputField
+                                icon={<Phone size={18} />} label="Contact Number" value={form.phone}
+                                onChange={(v) => setField('phone', v)} placeholder="+91 XXXXX XXXXX" type="tel"
                             />
-                            <InputField 
-                                icon={<Calendar size={18} />} label="Date of Birth" value={form.dateOfBirth} 
-                                onChange={(v) => setField('dateOfBirth', v)} type="date" 
+                            <InputField
+                                icon={<Calendar size={18} />} label="Date of Birth" value={form.dateOfBirth}
+                                onChange={(v) => setField('dateOfBirth', v)} type="date"
                             />
                             <div className="grid grid-cols-2 gap-4">
-                                <SelectField 
-                                    label="Gender" value={form.gender} onChange={(v) => setField('gender', v)} 
-                                    options={[{l:'Select', v:''}, {l:'Male',v:'Male'}, {l:'Female',v:'Female'}, {l:'Other',v:'Other'}]} 
+                                <SelectField
+                                    label="Gender" value={form.gender} onChange={(v) => setField('gender', v)}
+                                    options={[{ l: 'Select', v: '' }, { l: 'Male', v: 'Male' }, { l: 'Female', v: 'Female' }, { l: 'Other', v: 'Other' }]}
                                 />
-                                <SelectField 
-                                    label="Blood Group" value={form.bloodGroup} onChange={(v) => setField('bloodGroup', v)} 
-                                    options={bloodGroups.map(bg => ({ l: bg, v: bg }))} 
+                                <SelectField
+                                    label="Blood Group" value={form.bloodGroup} onChange={(v) => setField('bloodGroup', v)}
+                                    options={bloodGroups.map(bg => ({ l: bg, v: bg }))}
                                 />
                             </div>
                         </div>
@@ -152,15 +160,15 @@ export default function ProfilePage() {
                         </div>
 
                         <div className="grid grid-cols-1 gap-5">
-                            <InputField 
-                                icon={<AlertCircle size={18} className={form.allergies ? "text-rose-500" : ""} />} 
-                                label="Known Allergies" value={form.allergies} onChange={(v) => setField('allergies', v)} 
-                                placeholder="e.g. Penicillin, Peanuts (Comma separated)" 
+                            <InputField
+                                icon={<AlertCircle size={18} className={form.allergies ? "text-rose-500" : ""} />}
+                                label="Known Allergies" value={form.allergies} onChange={(v) => setField('allergies', v)}
+                                placeholder="e.g. Penicillin, Peanuts (Comma separated)"
                             />
-                            <InputField 
-                                icon={<Activity size={18} className={form.conditions ? "text-indigo-500" : ""} />} 
-                                label="Chronic Conditions" value={form.conditions} onChange={(v) => setField('conditions', v)} 
-                                placeholder="e.g. Hypertension, Asthma (Comma separated)" 
+                            <InputField
+                                icon={<Activity size={18} className={form.conditions ? "text-indigo-500" : ""} />}
+                                label="Chronic Conditions" value={form.conditions} onChange={(v) => setField('conditions', v)}
+                                placeholder="e.g. Hypertension, Asthma (Comma separated)"
                             />
                         </div>
                     </motion.div>
@@ -178,24 +186,24 @@ export default function ProfilePage() {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                            <InputField 
-                                label="Contact Name" value={form.emergencyName} 
-                                onChange={(v) => setField('emergencyName', v)} placeholder="Full Name" 
+                            <InputField
+                                label="Contact Name" value={form.emergencyName}
+                                onChange={(v) => setField('emergencyName', v)} placeholder="Full Name"
                             />
-                            <InputField 
-                                label="Relationship" value={form.emergencyRelation} 
-                                onChange={(v) => setField('emergencyRelation', v)} placeholder="e.g. Spouse, Parent" 
+                            <InputField
+                                label="Relationship" value={form.emergencyRelation}
+                                onChange={(v) => setField('emergencyRelation', v)} placeholder="e.g. Spouse, Parent"
                             />
-                            <InputField 
+                            <InputField
                                 label="Emergency Phone" value={form.emergencyPhone} type="tel"
-                                onChange={(v) => setField('emergencyPhone', v)} placeholder="+91 XXXXX XXXXX" 
+                                onChange={(v) => setField('emergencyPhone', v)} placeholder="+91 XXXXX XXXXX"
                             />
                         </div>
                     </motion.div>
                 </motion.div>
 
                 {/* Sticky Action Footer */}
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
                     className="sticky bottom-6 z-40 mt-8"
                 >
@@ -225,7 +233,7 @@ function InputField({ label, value, onChange, placeholder, type = "text", icon }
                     {icon}
                 </div>
             )}
-            <input 
+            <input
                 type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
                 className={`peer w-full h-16 rounded-[1.25rem] border border-slate-100 bg-slate-50/50 pt-5 text-sm font-bold text-slate-900 outline-none ring-2 ring-transparent transition-all focus:border-blue-300 focus:bg-white focus:ring-blue-500/20 hover:bg-slate-100/50 ${icon ? 'pl-12 pr-4' : 'px-5'}`}
             />
@@ -239,7 +247,7 @@ function InputField({ label, value, onChange, placeholder, type = "text", icon }
 function SelectField({ value, onChange, options, label }) {
     return (
         <div className="relative group">
-            <select 
+            <select
                 value={value} onChange={(e) => onChange(e.target.value)}
                 className="peer w-full h-16 rounded-[1.25rem] border border-slate-100 bg-slate-50/50 px-5 pt-5 text-sm font-bold text-slate-900 outline-none ring-2 ring-transparent transition-all focus:border-blue-300 focus:bg-white focus:ring-blue-500/20 hover:bg-slate-100/50 appearance-none"
             >

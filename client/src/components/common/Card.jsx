@@ -1,11 +1,16 @@
-export default function Card({ as: Tag = 'div', className = '', children, ...props }) {
+import { motion } from 'framer-motion';
+
+export default function Card({ as: Tag = 'div', className = '', ...props }) {
+    // We use motion.div by default. If it's a routing link or special tag, we wrap it in motion()
+    const Component = typeof Tag === 'string' && motion[Tag] ? motion[Tag] : motion(Tag);
+
     return (
-        <Tag
-            className={`rounded-[1.75rem] border border-white/65 bg-white/72 backdrop-blur-2xl ring-1 ring-slate-900/[0.02] shadow-[0_18px_50px_rgba(15,23,42,0.08)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_24px_64px_rgba(59,130,246,0.14)] ${className}`}
+        <Component
+            whileHover={{ y: -5 }}
+            whileTap={{ scale: 0.98 }}
+            className={`rounded-[2rem] border border-white/40 bg-white/70 backdrop-blur-2xl ring-1 ring-slate-900/[0.02] shadow-2xl shadow-slate-200/50 transition-colors duration-300 ease-out hover:bg-white/90 ${className}`}
             {...props}
-        >
-            {children}
-        </Tag>
+        />
     );
 }
 

@@ -92,7 +92,7 @@ export default function Home() {
                     <h2 className="text-xl font-bold text-zinc-900">Clinical Modules</h2>
                     <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">v2.4.0-Stable</span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
                     {quickActions.map((item, index) => (
                         <motion.div
                             key={item.path}
@@ -138,10 +138,10 @@ export default function Home() {
                                             <span className="text-[10px] font-bold text-zinc-400 italic">Accuracy</span>
                                         </div>
                                         <div className="h-1.5 w-full rounded-full bg-zinc-100">
-                                            <motion.div 
-                                                initial={{ width: 0 }} 
+                                            <motion.div
+                                                initial={{ width: 0 }}
                                                 animate={{ width: `${(info?.accuracy || 0) * 100}%` }}
-                                                className="h-full rounded-full bg-blue-500" 
+                                                className="h-full rounded-full bg-blue-500"
                                             />
                                         </div>
                                     </div>

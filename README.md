@@ -53,9 +53,9 @@ We chose this problem statement to democratize healthcare triage. By utilizing A
 
 ### Prototype Walkthrough
 - **User Onboarding:** Firebase-authenticated profile setup and seamless authentication.
-- **AI Clinical Chat:** Engaging with the Gemini-powered bot for responsive, real-time symptom analysis and triage.
+- **Premium Voice-to-Voice AI:** A centered, zero-text "Premium Voice Orb" powered by Framer Motion waveforms, featuring dual-mode Gemini triage and ElevenLabs high-quality Text-to-Speech audio.
 - **Diabetes Risk Assessment:** Filling out the structured health form and receiving an instant, scalable Flask ML prediction.
-- **Vital Trends Dashboard:** Logging vitals (BPM, Sugar, Blood Pressure) and viewing premium, interactive Framer Motion charts.
+- **Vital Trends Dashboard:** Logging vitals (BPM, Sugar, Blood Pressure) and viewing premium, interactive Framer Motion charts within a Glassmorphism design system.
 - **Rural Dashboard:** A specialized administrative flow for NGOs/volunteers to register remote patients and trigger cron-based Fast2SMS reminders.
 
 ---
@@ -65,10 +65,14 @@ We chose this problem statement to democratize healthcare triage. By utilizing A
 SehatSaathi relies heavily on intelligent services mapped to a distributed architecture:
 
 ### 1. Generative AI (Google Gemini)
-- **Clinical Triage:** Context-aware conversations parsing informal text into structured clinical paths. Translates real-world health situations into actionable system inputs.
+- **Clinical Triage:** Context-aware conversations parsing informal text into structured clinical paths. Translates real-world health situations into actionable system inputs with adaptive moods (Calm, Anxious, Urgent).
 - **Medicine Explanation:** Translating raw OCR text from prescriptions (via Multer mapping) into plain-language dosage and precaution instructions safely.
 
-### 2. Machine Learning (Flask Microservice)
+### 2. Lifelike Speech Synthesis (ElevenLabs)
+- **Voice Agent:** Converts Gemini's structured clinical responses into hyper-realistic audio tailored to the patient's severity mood.
+- **Read Aloud:** Provides robust accessibility for emergency protocols and prescriptions.
+
+### 3. Machine Learning (Flask Microservice)
 - **Model:** `scikit-learn` based predictive model exposed via an isolated Python Flask REST API.
 - **Use Case:** Predictive diabetes probability screening leveraging structured demographic and numeric inputs (glucose, BMI, age, etc.).
 
@@ -123,9 +127,9 @@ The architecture utilizes serverless-ready Node/React configurations and lightwe
 
 | Domain | Technologies |
 |---|---|
-| **Frontend** | React 19, Vite, Tailwind CSS 4, Framer Motion, Recharts |
+| **Frontend UI/UX** | React 19, Vite, Tailwind CSS 4 (Glassmorphism), Framer Motion, Recharts |
 | **Backend** | Node.js, Express 5, Mongoose, Firebase Admin |
-| **AI / ML** | Google Gemini SDK, Python 3.10, Flask, scikit-learn, joblib |
+| **AI / ML** | Google Gemini SDK, ElevenLabs API, Python 3.10, Flask, scikit-learn, joblib |
 | **Database** | MongoDB Atlas |
 | **Messaging** | Fast2SMS |
 
@@ -174,6 +178,8 @@ PORT=5000
 MONGO_URI=...
 ML_SERVICE_URL=http://localhost:5001
 GEMINI_API_KEY=...
+ELEVENLABS_API_KEY=...
+ELEVENLABS_VOICE_ID=...
 ORS_API_KEY=...
 FAST2SMS_API_KEY=...
 SMS_CRON_TIMEZONE=Asia/Kolkata

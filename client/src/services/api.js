@@ -58,6 +58,7 @@ export const sendMessage = ({ message = '', history = [], language = 'en', sessi
     });
 export const getChatHistory = () => api.get('/chat/history');
 export const getEmergencyGuidance = (data) => api.post('/chat/emergency', data);
+export const synthesizeSpeech = (data) => api.post('/chat/synthesize', data);
 
 export const uploadPrescription = (payload) => {
     if (payload instanceof FormData) {

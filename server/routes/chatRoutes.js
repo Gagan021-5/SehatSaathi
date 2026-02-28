@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { sendMessage, getHistory, getSessions } from '../controllers/chatController.js';
+import { sendMessage, getHistory, getSessions, synthesizeSpeechEndpoint } from '../controllers/chatController.js';
 import { getGuidance } from '../controllers/emergencyController.js';
 import { optionalFirebaseAuth } from '../middleware/firebaseAuth.js';
 
@@ -15,5 +15,6 @@ router.post('/message', optionalFirebaseAuth, sendMessage);
 router.get('/history', optionalFirebaseAuth, getSessions);
 router.get('/history/:sessionId', optionalFirebaseAuth, getHistory);
 router.post('/emergency', optionalFirebaseAuth, getGuidance);
+router.post('/synthesize', optionalFirebaseAuth, synthesizeSpeechEndpoint);
 
 export default router;

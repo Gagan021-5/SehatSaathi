@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import React from 'react';
 import {
     AlertTriangle,
     CheckCircle2,
@@ -10,13 +11,17 @@ import {
     Volume2,
     VolumeX,
     Activity,
-    Info
+    Info,
+    Mic,
+    MicOff,
+    Bot
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
-import { predictDiabetes } from '../services/api';
+import { predictDiabetes, sendMessage, synthesizeSpeech } from '../services/api';
 import Card from '../components/common/Card';
 import PageTransition from '../components/common/PageTransition';
 import ServiceOfflineBanner from '../components/common/ServiceOfflineBanner';
+import { useVoiceLoop } from '../hooks/useVoiceLoop';
 
 const smokingOptions = ['never', 'former', 'current', 'ever', 'not current', 'No Info'];
 
@@ -38,8 +43,76 @@ export default function DiabetesPage() {
     });
     const [result, setResult] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [speaking, setSpeaking] = useState(false);
     const [serverError, setServerError] = useState('');
+
+    const audioPlayerRef = React.useRef(null);
+    const [chatHistory, setChatHistory] = useState([]);
+    const [voiceLoading, setVoiceLoading] = useState(false);
+
+    const {
+        isListening,
+        isSpeaking: isVoiceSpeaking,
+        sessionActive,
+        startSession,
+        stopSession,
+        speakText
+    } = useVoiceLoop({
+        lang: currentLanguage.speechCode || 'en-IN',
+        onSpeechResult: async (transcript) => {
+            if (!transcript || voiceLoading) return;
+            setVoiceLoading(true);
+
+            try {
+                // Add the AI explanation as context in the first message if history is empty
+                const contextPrefix = chatHistory.length === 0
+                    ? `Context: The user just received a diabetes risk report. Report details: ${result?.ai_explanation?.raw}. `
+                    : '';
+
+                const nextMessage = { role: 'user', content: transcript };
+                const newHistory = [...chatHistory, nextMessage];
+                setChatHistory(newHistory);
+
+                const { data } = await sendMessage({
+                    message: contextPrefix + transcript,
+                    history: chatHistory,
+                    language: currentLanguage.code
+                });
+
+                setChatHistory(prev => [...prev, { role: 'assistant', content: data.text }]);
+
+                if (data?.audioBase64) {
+                    await playAudio(data.audioBase64);
+                } else if (sessionActive) {
+                    speakText(data.text);
+                }
+            } catch (error) {
+                toast.error('Voice sync failed.');
+                if (sessionActive) {
+                    setTimeout(() => startSession(), 200);
+                }
+            } finally {
+                setVoiceLoading(false);
+            }
+        }
+    });
+
+    async function playAudio(base64) {
+        if (sessionActive) stopSession();
+        const blob = new Blob([Uint8Array.from(atob(base64), c => c.charCodeAt(0))], { type: 'audio/mpeg' });
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        audioPlayerRef.current = audio;
+
+        try {
+            await audio.play();
+            await new Promise(res => audio.onended = res);
+        } finally {
+            URL.revokeObjectURL(url);
+            if (sessionActive) {
+                setTimeout(() => startSession(), 200);
+            }
+        }
+    }
 
     const canSubmit = form.gender && form.smoking_history && form.bmi && form.HbA1c_level && form.blood_glucose_level;
 
@@ -51,6 +124,9 @@ export default function DiabetesPage() {
         setLoading(true);
         setResult(null);
         setServerError('');
+        setChatHistory([]); // Reset voice chat history for new report
+        if (sessionActive) stopSession();
+
         try {
             const { data } = await predictDiabetes({ ...form, language: currentLanguage.code });
             setResult(data);
@@ -66,19 +142,33 @@ export default function DiabetesPage() {
         }
     }
 
-    function speakSummary() {
-        const text = result?.ai_explanation?.summary || result?.ai_explanation?.raw || '';
-        if (!text) return;
-        if (speaking) {
-            window.speechSynthesis.cancel();
-            setSpeaking(false);
-            return;
+    async function toggleVoiceInsights() {
+        if (sessionActive) {
+            stopSession();
+            if (audioPlayerRef.current) audioPlayerRef.current.pause();
+        } else {
+            const text = result?.ai_explanation?.summary || result?.ai_explanation?.raw || '';
+            if (!text) return;
+
+            setVoiceLoading(true);
+            try {
+                // Fetch high-quality ElevenLabs TTS for the initial insight summary
+                const { data } = await synthesizeSpeech({ text: text.replace(/[*#_`]/g, ''), mood: 'Calm' });
+                startSession(); // Starts session logically so UI updates immediately
+                if (data?.audioBase64) {
+                    await playAudio(data.audioBase64);
+                } else {
+                    // Fallback to basic if ElevenLabs fails entirely (no key)
+                    speakText(text.replace(/[*#_`]/g, ''));
+                }
+            } catch (error) {
+                toast.error('Voice synthesis failed.');
+                startSession();
+                speakText(text.replace(/[*#_`]/g, '')); // fallback
+            } finally {
+                setVoiceLoading(false);
+            }
         }
-        const utterance = new SpeechSynthesisUtterance(text.replace(/[*#_`]/g, ''));
-        utterance.lang = currentLanguage.speechCode || 'en-IN';
-        utterance.onend = () => setSpeaking(false);
-        setSpeaking(true);
-        window.speechSynthesis.speak(utterance);
     }
 
     const ml = result?.ml_prediction;
@@ -95,8 +185,8 @@ export default function DiabetesPage() {
             {/* Header Section */}
             <header className="relative py-8 text-center">
                 <div className="absolute inset-0 -z-10 bg-[radial-gradient(45%_40%_at_50%_50%,rgba(59,130,246,0.08)_0%,transparent_100%)]" />
-                <motion.div 
-                    initial={{ scale: 0.9, opacity: 0 }} 
+                <motion.div
+                    initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-2xl shadow-blue-500/40 mb-6"
                 >
@@ -119,10 +209,10 @@ export default function DiabetesPage() {
                             <label className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
                                 <Activity size={14} className="text-blue-500" /> Gender
                             </label>
-                            <select 
+                            <select
                                 className="w-full h-11 px-4 rounded-xl border-zinc-200 bg-white/50 focus:ring-2 focus:ring-blue-500 transition-all outline-none appearance-none"
-                                value={form.gender} 
-                                onChange={(e) => setField('gender', e.target.value)} 
+                                value={form.gender}
+                                onChange={(e) => setField('gender', e.target.value)}
                                 required
                             >
                                 <option value="">Select...</option>
@@ -220,7 +310,7 @@ export default function DiabetesPage() {
             {/* Results Section */}
             <AnimatePresence>
                 {result && (
-                    <motion.div 
+                    <motion.div
                         variants={containerVariants} initial="hidden" animate="visible"
                         className="grid grid-cols-1 lg:grid-cols-3 gap-6"
                     >
@@ -232,8 +322,8 @@ export default function DiabetesPage() {
                                     <div className="relative flex items-center justify-center">
                                         <svg className="h-32 w-32 -rotate-90">
                                             <circle cx="64" cy="64" r="58" fill="transparent" stroke="currentColor" strokeWidth="8" className="text-zinc-100" />
-                                            <circle 
-                                                cx="64" cy="64" r="58" fill="transparent" stroke="currentColor" strokeWidth="8" 
+                                            <circle
+                                                cx="64" cy="64" r="58" fill="transparent" stroke="currentColor" strokeWidth="8"
                                                 strokeDasharray={364.4}
                                                 strokeDashoffset={364.4 - (364.4 * riskPercent) / 100}
                                                 className={`${riskPercent > 50 ? 'text-red-500' : 'text-blue-500'} transition-all duration-1000`}
@@ -246,7 +336,7 @@ export default function DiabetesPage() {
                                         <p className="text-xs text-zinc-500 mt-1">Confidence Score: {ml?.confidence || 0}%</p>
                                     </div>
                                 </div>
-                                
+
                                 <div className="mt-8 space-y-3">
                                     {ml?.medical_flags?.map((flag, i) => (
                                         <div key={i} className="p-3 rounded-xl bg-white border border-zinc-100 text-xs shadow-sm">
@@ -272,13 +362,57 @@ export default function DiabetesPage() {
                                         <h2 className="text-xl font-bold text-zinc-900">AI Medical Insights</h2>
                                     </div>
                                     <button
-                                        onClick={speakSummary}
-                                        className="flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-100 text-zinc-600 text-sm font-medium hover:bg-zinc-200 transition-colors"
+                                        onClick={toggleVoiceInsights}
+                                        className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${sessionActive
+                                            ? 'bg-rose-100 text-rose-600 hover:bg-rose-200'
+                                            : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                                            }`}
                                     >
-                                        {speaking ? <VolumeX size={16} /> : <Volume2 size={16} />}
-                                        {speaking ? 'Stop' : 'Listen'}
+                                        {sessionActive ? <MicOff size={16} /> : <Volume2 size={16} />}
+                                        {sessionActive ? 'End Voice Session' : 'Listen & Discuss'}
                                     </button>
                                 </div>
+
+                                {/* Voice Visualizer & Chat Status */}
+                                <AnimatePresence>
+                                    {sessionActive && (
+                                        <motion.div
+                                            initial={{ opacity: 0, height: 0 }}
+                                            animate={{ opacity: 1, height: 'auto' }}
+                                            exit={{ opacity: 0, height: 0 }}
+                                            className="mb-6 overflow-hidden"
+                                        >
+                                            <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-900 text-white shadow-lg relative overflow-hidden">
+                                                <div className="absolute inset-0 bg-blue-500/10 blur-xl" />
+                                                <div className="relative flex items-center gap-3">
+                                                    <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center">
+                                                        <Bot size={20} className="text-blue-400" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-bold">Clinical Voice Assistant</p>
+                                                        <p className="text-xs text-blue-200/70">
+                                                            {voiceLoading ? 'Analyzing...' : isVoiceSpeaking ? 'Speaking...' : isListening ? 'Listening...' : 'Thinking...'}
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                {/* Mini Waveform */}
+                                                {(isListening || isVoiceSpeaking) && (
+                                                    <div className="relative flex items-center gap-1 h-8">
+                                                        {[...Array(6)].map((_, i) => (
+                                                            <motion.div
+                                                                key={i}
+                                                                animate={{ height: isListening ? [10, 24, 10] : [6, 32, 6] }}
+                                                                transition={{ duration: isListening ? 1.5 : 0.8, repeat: Infinity, delay: i * 0.1 }}
+                                                                className="w-1 rounded-full bg-blue-400/80"
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
 
                                 <div className="prose prose-blue prose-zinc max-w-none">
                                     <ReactMarkdown>{ai?.summary || ai?.raw || ''}</ReactMarkdown>

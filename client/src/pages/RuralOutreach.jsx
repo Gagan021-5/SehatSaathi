@@ -100,7 +100,7 @@ export default function RuralOutreach() {
             const normalized = parsed.map(normalizePatient).filter(Boolean);
             setVillageRoster(normalized);
         } catch (error) {
-            console.error('Failed to load offline roster:', error.message);
+            toast.error(t('ruralOutreach.toasts.failedLoad') || 'Failed to load offline roster');
         }
     }, []);
 
@@ -108,7 +108,7 @@ export default function RuralOutreach() {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(villageRoster));
         } catch (error) {
-            console.error('Failed to persist offline roster:', error.message);
+            toast.error(t('ruralOutreach.toasts.failedPersist') || 'Failed to persist offline roster');
         }
     }, [villageRoster]);
 
@@ -224,11 +224,11 @@ export default function RuralOutreach() {
             prev.map((patient) =>
                 patient.id === selectedPatient.id
                     ? {
-                          ...patient,
-                          vitals: payload,
-                          status: STATUS_CLEARED,
-                          updatedAt: new Date().toISOString(),
-                      }
+                        ...patient,
+                        vitals: payload,
+                        status: STATUS_CLEARED,
+                        updatedAt: new Date().toISOString(),
+                    }
                     : patient
             )
         );
@@ -277,10 +277,10 @@ export default function RuralOutreach() {
                     prev.map((patient) =>
                         patient.id === patientId
                             ? {
-                                  ...patient,
-                                  voiceNotes: [note, ...(patient.voiceNotes || [])],
-                                  updatedAt: new Date().toISOString(),
-                              }
+                                ...patient,
+                                voiceNotes: [note, ...(patient.voiceNotes || [])],
+                                updatedAt: new Date().toISOString(),
+                            }
                             : patient
                     )
                 );
@@ -297,7 +297,7 @@ export default function RuralOutreach() {
             setActiveVoicePatientId(patientId);
             toast.success(t('ruralOutreach.toasts.recordingStarted'));
         } catch (error) {
-            console.error('Voice triage capture failed:', error.message);
+            toast.error(t('ruralOutreach.toasts.captureFailed') || 'Voice triage capture failed.');
             toast.error(t('ruralOutreach.toasts.microphoneError'));
         }
     }
@@ -383,11 +383,10 @@ export default function RuralOutreach() {
                                 <button
                                     type="button"
                                     onClick={() => toggleVoiceTriage(patient.id)}
-                                    className={`flex h-12 items-center justify-center gap-2 rounded-xl border text-sm font-bold transition-all active:scale-[0.99] ${
-                                        activeVoicePatientId === patient.id
+                                    className={`flex h-12 items-center justify-center gap-2 rounded-xl border text-sm font-bold transition-all active:scale-[0.99] ${activeVoicePatientId === patient.id
                                             ? 'border-rose-300 bg-rose-50 text-rose-700'
                                             : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                                    }`}
+                                        }`}
                                 >
                                     <Mic size={17} />{' '}
                                     {activeVoicePatientId === patient.id
@@ -508,11 +507,10 @@ function SyncBadge({ status, t }) {
     const isOnline = status === 'online';
     return (
         <div
-            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-black uppercase tracking-[0.14em] ${
-                isOnline
+            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-black uppercase tracking-[0.14em] ${isOnline
                     ? 'border-emerald-300/40 bg-emerald-400/20 text-emerald-100'
                     : 'border-amber-300/40 bg-amber-400/20 text-amber-100'
-            }`}
+                }`}
         >
             {isOnline ? <Wifi size={13} /> : <WifiOff size={13} />}
             {t('ruralOutreach.syncStatusLabel')}: {t(`ruralOutreach.sync.${status}`)}
@@ -524,9 +522,8 @@ function StatusBadge({ status, t }) {
     const isCleared = status === STATUS_CLEARED;
     return (
         <span
-            className={`rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] ${
-                isCleared ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-            }`}
+            className={`rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] ${isCleared ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                }`}
         >
             {t(`ruralOutreach.status.${status}`)}
         </span>

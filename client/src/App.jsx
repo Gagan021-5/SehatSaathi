@@ -68,9 +68,9 @@ function AppLayout() {
       {/* Main Container Area */}
       <div className="relative flex flex-1 flex-col min-w-0">
         <Navbar onMenuClick={() => setSidebarOpen(true)} />
-        
-        {/* Scrollable Viewport */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 custom-scrollbar">
+
+        {/* Scrollable Viewport with Safe-Area bottom padding */}
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 pb-32 md:pb-32 custom-scrollbar">
           <div className="mx-auto max-w-7xl">
             <Suspense fallback={<RouteLoader />}>
               <Routes>
@@ -109,13 +109,17 @@ export default function App() {
             toastOptions={{
               className: 'premium-toast',
               style: {
-                borderRadius: '20px',
-                background: 'rgba(255, 255, 255, 0.9)',
-                backdropFilter: 'blur(12px)',
-                border: '1px solid rgba(226, 232, 240, 0.8)',
-                boxShadow: '0 20px 40px -10px rgba(15, 23, 42, 0.1)',
+                borderRadius: '1rem',
+                background: 'rgba(255, 255, 255, 0.7)',
+                backdropFilter: 'blur(24px)',
+                WebkitBackdropFilter: 'blur(24px)',
+                border: '1px solid rgba(255, 255, 255, 0.4)',
+                boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.15)',
                 color: '#0f172a',
                 padding: '16px 24px',
+                fontWeight: 600,
+                fontSize: '14px',
+                letterSpacing: '0.02em',
               },
             }}
           />

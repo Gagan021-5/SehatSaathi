@@ -129,8 +129,8 @@ function computeRiskHorizon(records) {
         strongest.type === 'blood_sugar' && strongest.deltaPct < 0
             ? 'Neural Analysis: 15% increased risk of Hypoglycemic Event detected in the next 48h. Action: Monitor closely.'
             : strongest.type === 'heart_rate' && strongest.deltaPct > 0
-              ? 'Neural Analysis: 15% increased risk of Hypertensive Event detected in the next 48h. Action: Monitor closely.'
-              : 'Neural Analysis: 15% increased risk of Cardiometabolic Instability detected in the next 48h. Action: Monitor closely.';
+                ? 'Neural Analysis: 15% increased risk of Hypertensive Event detected in the next 48h. Action: Monitor closely.'
+                : 'Neural Analysis: 15% increased risk of Cardiometabolic Instability detected in the next 48h. Action: Monitor closely.';
 
     return {
         signalLabel: strongest.label,
@@ -141,7 +141,7 @@ function computeRiskHorizon(records) {
 }
 
 export default function HealthRecordsPage() {
-    const { currentLanguage } = useLanguage();
+    const { currentLanguage, t } = useLanguage();
     const [records, setRecords] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showAdd, setShowAdd] = useState(false);
@@ -177,13 +177,19 @@ export default function HealthRecordsPage() {
 
         setSaving(true);
         try {
-            await addVital({ type: addType, value: addValue });
+            const addedVital = await addVital({ type: addType, value: addValue });
+            // Optimistically update the records state for instant chart updates
+            setRecords((prev) => [...prev, {
+                ...(addedVital.data || { type: addType, value: addValue }),
+                createdAt: new Date().toISOString()
+            }]);
             setAddValue('');
             setShowAdd(false);
-            toast.success('Vital reading synchronized.');
+            toast.success(t('Vital reading synchronized.') || 'Vital reading synchronized.');
+            // Still fetch to ensure server state is exactly matched
             fetchRecords();
         } catch {
-            toast.error('Failed to save reading.');
+            toast.error(t('Failed to save reading.') || 'Failed to save reading.');
         } finally {
             setSaving(false);
         }
@@ -191,7 +197,7 @@ export default function HealthRecordsPage() {
 
     async function handleAnalyze() {
         if (records.length === 0) {
-            toast.error('Add vitals first to generate insights.');
+            toast.error(t('Add vitals first to generate insights.') || 'Add vitals first to generate insights.');
             return;
         }
 
@@ -201,9 +207,9 @@ export default function HealthRecordsPage() {
         try {
             const { data } = await analyzeHealth(currentLanguage.code);
             setAnalysis(data);
-            toast.success('AI Health Analysis Complete');
+            toast.success(t('AI Health Analysis Complete') || 'AI Health Analysis Complete');
         } catch {
-            toast.error('Unable to perform AI analysis.');
+            toast.error(t('Unable to perform AI analysis.') || 'Unable to perform AI analysis.');
         } finally {
             setAnalyzing(false);
         }
@@ -222,14 +228,23 @@ export default function HealthRecordsPage() {
         return grouped;
     }, [records]);
 
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        show: { opacity: 1, transition: { staggerChildren: 0.1 } }
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 20, scale: 0.95 },
+        show: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', damping: 25, stiffness: 300 } }
+    };
+
     return (
         <PageTransition className="mx-auto max-w-6xl space-y-6 px-4 py-6 md:py-8">
             <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
+                variants={containerVariants} initial="hidden" animate="show"
                 className="flex flex-col justify-between gap-6 md:flex-row md:items-center"
             >
-                <div className="flex items-center gap-5">
+                <motion.div variants={itemVariants} className="flex items-center gap-5">
                     <div className="relative grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-blue-600 to-teal-400 text-white shadow-xl shadow-blue-500/30">
                         <Activity size={28} />
                         <motion.div
@@ -239,28 +254,28 @@ export default function HealthRecordsPage() {
                         />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-zinc-900">Vitals & Trends</h1>
+                        <h1 className="text-3xl font-bold tracking-tight text-zinc-900">{t('Vitals & Trends') || 'Vitals & Trends'}</h1>
                         <p className="font-medium text-zinc-500">
-                            Monitoring your biometric health data in real-time.
+                            {t('Monitoring your biometric health data in real-time.') || 'Monitoring your biometric health data in real-time.'}
                         </p>
                     </div>
-                </div>
+                </motion.div>
 
-                <div className="flex items-center gap-3">
+                <motion.div variants={itemVariants} className="flex items-center gap-3">
                     <button
                         onClick={() => setShowAdd(true)}
                         className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-zinc-900 px-5 py-3 text-sm font-bold text-white shadow-xl shadow-zinc-900/20 transition-all hover:-translate-y-1 hover:bg-zinc-800 active:scale-95 md:flex-none"
                     >
-                        <Plus size={18} /> Add Reading
+                        <Plus size={18} /> {t('Add Reading') || 'Add Reading'}
                     </button>
                     <button
                         onClick={handleAnalyze}
                         disabled={analyzing || records.length === 0}
                         className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-blue-100 bg-white px-5 py-3 text-sm font-bold text-blue-600 shadow-xl shadow-blue-500/5 transition-all hover:-translate-y-1 hover:bg-blue-50 active:scale-95 disabled:opacity-50 md:flex-none"
                     >
-                        {analyzing ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />} AI Insight
+                        {analyzing ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />} {t('AI Insight') || 'AI Insight'}
                     </button>
-                </div>
+                </motion.div>
             </motion.div>
 
             <AnimatePresence>
@@ -279,12 +294,12 @@ export default function HealthRecordsPage() {
                                 <X size={20} className="text-zinc-400" />
                             </button>
 
-                            <h2 className="mb-6 text-xl font-bold text-zinc-900">Log New Reading</h2>
+                            <h2 className="mb-6 text-xl font-bold text-zinc-900">{t('Log New Reading') || 'Log New Reading'}</h2>
 
                             <div className="space-y-5">
                                 <div className="space-y-2">
                                     <label className="px-1 text-xs font-bold uppercase tracking-wider text-zinc-400">
-                                        Vital Category
+                                        {t('Vital Category') || 'Vital Category'}
                                     </label>
                                     <select
                                         value={addType}
@@ -293,7 +308,7 @@ export default function HealthRecordsPage() {
                                     >
                                         {vitalTypes.map((vital) => (
                                             <option key={vital.type} value={vital.type}>
-                                                {vital.label}
+                                                {t(vital.label) || vital.label}
                                             </option>
                                         ))}
                                     </select>
@@ -301,7 +316,7 @@ export default function HealthRecordsPage() {
 
                                 <div className="space-y-2">
                                     <label className="px-1 text-xs font-bold uppercase tracking-wider text-zinc-400">
-                                        Measurement Value
+                                        {t('Measurement Value') || 'Measurement Value'}
                                     </label>
                                     <div className="relative">
                                         <input
@@ -325,7 +340,7 @@ export default function HealthRecordsPage() {
                                     {saving ? (
                                         <Loader2 size={20} className="mx-auto animate-spin" />
                                     ) : (
-                                        'Synchronize Record'
+                                        t('Synchronize Record') || 'Synchronize Record'
                                     )}
                                 </button>
                             </div>
@@ -363,10 +378,10 @@ export default function HealthRecordsPage() {
                                 </div>
                                 <div>
                                     <h2 className="text-lg font-black tracking-tight text-zinc-900">
-                                        Risk Horizon | Neural Analysis
+                                        {t('Risk Horizon | Neural Analysis') || 'Risk Horizon | Neural Analysis'}
                                     </h2>
                                     <p className="mt-1 text-xs font-bold uppercase tracking-[0.14em] text-amber-700">
-                                        Prognosis signal: {riskHorizon.signalLabel} ({riskHorizon.direction},{' '}
+                                        {t('Prognosis signal:') || 'Prognosis signal:'} {t(riskHorizon.signalLabel) || riskHorizon.signalLabel} ({t(riskHorizon.direction) || riskHorizon.direction},{' '}
                                         {Math.abs(riskHorizon.deltaPct)}%)
                                     </p>
                                     <p className="mt-3 text-sm font-semibold leading-relaxed text-amber-900">
@@ -392,11 +407,11 @@ export default function HealthRecordsPage() {
                                     <div className="rounded-lg bg-blue-600 p-2 text-white">
                                         <Bot size={20} />
                                     </div>
-                                    <h2 className="text-lg font-bold text-zinc-900">Clinical Intelligence Analysis</h2>
+                                    <h2 className="text-lg font-bold text-zinc-900">{t('Clinical Intelligence Analysis') || 'Clinical Intelligence Analysis'}</h2>
                                     {analysis.health_score != null ? (
                                         <div className="ml-auto flex items-center gap-2 rounded-full border border-blue-100 bg-white px-3 py-1 shadow-sm">
                                             <span className="text-xs font-bold uppercase text-zinc-400">
-                                                Vitality Score
+                                                {t('Vitality Score') || 'Vitality Score'}
                                             </span>
                                             <span className="text-lg font-black text-blue-600">
                                                 {analysis.health_score}
@@ -437,9 +452,7 @@ export default function HealthRecordsPage() {
                     return (
                         <motion.div
                             key={vital.type}
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.4, delay: index * 0.05 }}
+                            variants={itemVariants}
                             whileHover={{ y: -5 }}
                         >
                             <Card className="group relative overflow-hidden border-zinc-200/60 p-0 transition-all hover:shadow-2xl hover:shadow-zinc-200/50">
@@ -457,14 +470,14 @@ export default function HealthRecordsPage() {
                                             <div className="flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-1 text-emerald-500">
                                                 <ArrowUpRight size={12} />
                                                 <span className="text-[10px] font-bold uppercase tracking-tighter">
-                                                    Recorded
+                                                    {t('Recorded') || 'Recorded'}
                                                 </span>
                                             </div>
                                         ) : null}
                                     </div>
 
                                     <p className="mb-1 text-xs font-black uppercase tracking-widest text-zinc-400">
-                                        {vital.label}
+                                        {t(vital.label) || vital.label}
                                     </p>
 
                                     {latest ? (
@@ -489,7 +502,7 @@ export default function HealthRecordsPage() {
                                         </div>
                                     ) : (
                                         <div className="rounded-2xl border-2 border-dashed border-zinc-100 py-8 text-center">
-                                            <p className="text-sm font-bold text-zinc-300">No telemetry data</p>
+                                            <p className="text-sm font-bold text-zinc-300">{t('No telemetry data') || 'No telemetry data'}</p>
                                         </div>
                                     )}
                                 </div>
@@ -512,7 +525,7 @@ export default function HealthRecordsPage() {
                         <div className="absolute inset-0 bg-blue-500/20 blur-xl" />
                     </div>
                     <p className="text-sm font-bold uppercase tracking-widest text-zinc-400">
-                        Fetching Biometrics
+                        {t('Fetching Biometrics') || 'Fetching Biometrics'}
                     </p>
                 </div>
             ) : null}
