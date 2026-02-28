@@ -236,7 +236,7 @@ Python Flask ML Service (Port 5001)
 
 ## 🎥 Demo Video
 
-> **[📺 Watch Full Demo on YouTube / Loom](#)** *(Add link here)*
+> **[📺 Watch Full Demo on YouTube / Loom](https://youtu.be/mdKu8jR5wUY)
 
 **Demo script covers:**
 1. 🔐 Google Sign-In with real profile photo appearing instantly
