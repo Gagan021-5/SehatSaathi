@@ -1,6 +1,9 @@
 <div align="center">
 
+<img src="./client/public/ShayakSaarthi.jpeg" alt="SehatSaathi Logo" width="120" style="border-radius: 50%; margin-bottom: 12px;" />
+
 <img src="https://readme-typing-svg.demolab.com?font=Sora&weight=700&size=32&duration=3000&pause=1000&color=3B82F6&center=true&vCenter=true&width=700&lines=🏥+SehatSaathi;AI-First+Healthcare+for+India;सेहत+साथी+-+आपका+AI+स्वास्थ्य+साथी" alt="SehatSaathi Typing SVG" />
+
 
 <br/>
 
