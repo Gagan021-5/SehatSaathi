@@ -58,7 +58,333 @@
     "cancel": "रद्द करें",
     "close": "बंद करें",
     "user": "यूज़र",
-    "yrs": "वर्ष"
+    "yrs": "वर्ष",
+    "loading": "लोड हो रहा है...",
+    "error": "कुछ गलत हो गया",
+    "retry": "दोबारा कोशिश करें",
+    "submit": "सबमिट करें",
+    "back": "वापस",
+    "next": "आगे",
+    "yes": "हाँ",
+    "no": "नहीं",
+    "or": "या",
+    "and": "और",
+    "search": "खोजें",
+    "filter": "फ़िल्टर",
+    "clear": "साफ़ करें",
+    "delete": "हटाएं",
+    "edit": "संपादित करें",
+    "add": "जोड़ें",
+    "view": "देखें",
+    "download": "डाउनलोड",
+    "upload": "अपलोड",
+    "analyzing": "विश्लेषण हो रहा है...",
+    "processing": "प्रोसेस हो रहा है...",
+    "success": "सफल"
+  },
+  "home": {
+    "greeting": "सुप्रभात, {{name}}।",
+    "subtitle": "बुद्धिमान निदान और स्वास्थ्य प्रबंधन के लिए आपका एकीकृत कार्यक्षेत्र।",
+    "newAssessment": "नया मूल्यांकन",
+    "clinicalModules": "क्लिनिकल मॉड्यूल्स",
+    "version": "v2.4.0-स्थिर",
+    "neuralNetworkStatus": "न्यूरल नेटवर्क स्थिति",
+    "neuralNetworkSubtitle": "हमारे ML माइक्रोसर्विसेज़ से लाइव सटीकता और डेटासेट मेट्रिक्स।",
+    "accuracy": "सटीकता",
+    "dataset": "डेटासेट",
+    "systemOperational": "सिस्टम चालू है",
+    "trust": {
+      "encryptedVault": "एन्क्रिप्टेड वॉल्ट",
+      "encryptedVaultDesc": "सभी मेडिकल रिकॉर्ड स्टोरेज के लिए AES-256 मानक।",
+      "realTimeSync": "रियल-टाइम सिंक",
+      "realTimeSyncDesc": "सभी प्रमाणित डिवाइसों पर तुरंत अपडेट।",
+      "expertVerified": "विशेषज्ञ-सत्यापित",
+      "expertVerifiedDesc": "पीयर-रिव्यू क्लिनिकल डेटा पर प्रशिक्षित AI मॉडल।"
+    },
+    "quickActions": {
+      "diabetesScreening": "डायबिटीज स्क्रीनिंग",
+      "diabetesScreeningSubtitle": "ML-आधारित जोखिम विश्लेषण",
+      "aiClinicalAssistant": "AI क्लिनिकल सहायक",
+      "aiClinicalAssistantSubtitle": "रियल-टाइम चिकित्सा मार्गदर्शन",
+      "smartScan": "स्मार्ट स्कैन",
+      "smartScanSubtitle": "मेडिकल प्रिस्क्रिप्शन डिजिटाइज़ करें",
+      "emergencyProtocol": "इमरजेंसी प्रोटोकॉल",
+      "emergencyProtocolSubtitle": "महत्वपूर्ण प्राथमिक उपचार प्रक्रियाएं",
+      "pharmacyManager": "फार्मेसी मैनेजर",
+      "pharmacyManagerSubtitle": "इन्वेंट्री और खुराक ट्रैकिंग",
+      "secureVault": "सिक्योर वॉल्ट",
+      "secureVaultSubtitle": "केंद्रीकृत परिवार के रिकॉर्ड"
+    }
+  },
+  "chat": {
+    "voiceTitle": "सेहतसाथी वॉयस",
+    "tapToSpeak": "बोलने के लिए टैप करें",
+    "voiceInteractionActive": "वॉयस इंटरैक्शन सक्रिय",
+    "listening": "सुन रहा हूँ...",
+    "thinking": "सोच रहा हूँ...",
+    "speaking": "बोल रहा हूँ...",
+    "resetConnection": "कनेक्शन रीसेट करें",
+    "errorBusy": "हेल्थ डॉक्टर व्यस्त हैं। कृपया बाद में फिर कोशिश करें।",
+    "errorConnection": "कनेक्शन टूट गया। कृपया दोबारा कोशिश करें।",
+    "initialMessage": "नमस्ते! मैं सेहतसाथी हूँ। आज मैं आपकी स्वास्थ्य सहायता कैसे करूँ?"
+  },
+  "diabetes": {
+    "title": "डायबिटीज जोखिम इंटेलिजेंस",
+    "subtitle": "मशीन लर्निंग और AI मार्गदर्शन द्वारा उन्नत क्लिनिकल स्क्रीनिंग।",
+    "formTitle": "क्लिनिकल डेटा एंट्री",
+    "formSubtitle": "जोखिम विश्लेषण के लिए अपने क्लिनिकल पैरामीटर भरें।",
+    "fields": {
+      "gender": "जैविक लिंग",
+      "age": "आयु (वर्ष)",
+      "hypertension": "उच्च रक्तचाप",
+      "heartDisease": "हृदय रोग",
+      "smokingHistory": "धूम्रपान इतिहास",
+      "bmi": "BMI",
+      "hba1c": "HbA1c स्तर (%)",
+      "bloodGlucose": "रक्त शर्करा (mg/dL)"
+    },
+    "options": {
+      "selectGender": "लिंग चुनें",
+      "male": "पुरुष",
+      "female": "महिला",
+      "other": "अन्य",
+      "hypertensionYes": "हाँ — निदान हुआ",
+      "hypertensionNo": "नहीं",
+      "heartDiseaseYes": "हाँ — निदान हुआ",
+      "heartDiseaseNo": "नहीं"
+    },
+    "submit": "क्लिनिकल विश्लेषण करें",
+    "analyzing": "क्लिनिकल प्रोफाइल विश्लेषण हो रहा है...",
+    "mlRiskScore": "ML जोखिम स्कोर",
+    "aiMedicalInsights": "AI मेडिकल इनसाइट्स",
+    "listenAndDiscuss": "सुनें और चर्चा करें",
+    "endVoiceSession": "वॉयस सेशन समाप्त करें",
+    "clinicalVoiceAssistant": "क्लिनिकल वॉयस असिस्टेंट",
+    "analyzing2": "विश्लेषण हो रहा है...",
+    "disclaimer": "क्लिनिकल अस्वीकरण: यह रिपोर्ट AI द्वारा केवल शैक्षिक उद्देश्यों के लिए बनाई गई है। यह पेशेवर चिकित्सा सलाह की जगह नहीं ले सकती। निदान के लिए हमेशा लाइसेंस प्राप्त चिकित्सक से परामर्श करें।",
+    "diet": {
+      "eat": "खाने योग्य खाद्य पदार्थ",
+      "avoid": "परहेज करने योग्य खाद्य पदार्थ"
+    },
+    "exercise": "व्यायाम मार्गदर्शन",
+    "whenToSeeDoctor": "डॉक्टर से कब मिलें",
+    "lifestyle": "जीवनशैली सुझाव",
+    "specialist": "विशेषज्ञ से मिलें",
+    "recommendations": "मुख्य अनुशंसाएं",
+    "history": {
+      "title": "मूल्यांकन इतिहास",
+      "noHistory": "कोई पुराना मूल्यांकन नहीं मिला।",
+      "prediction": "भविष्यवाणी",
+      "confidence": "विश्वास"
+    }
+  },
+  "profile": {
+    "title": "सदस्य प्रोफाइल",
+    "secureIdentity": "सुरक्षित पहचान",
+    "demographics": "जनसांख्यिकी",
+    "demographicsSubtitle": "व्यक्तिगत पहचान विवरण",
+    "clinicalProfile": "क्लिनिकल प्रोफाइल",
+    "clinicalProfileSubtitle": "ज्ञात स्थितियाँ और संवेदनशीलताएं",
+    "emergencyProtocol": "आपातकालीन प्रोटोकॉल",
+    "emergencyProtocolSubtitle": "संपर्क का प्राथमिक बिंदु",
+    "fields": {
+      "legalName": "कानूनी नाम",
+      "contactNumber": "संपर्क नंबर",
+      "dateOfBirth": "जन्म तिथि",
+      "gender": "लिंग",
+      "bloodGroup": "रक्त समूह",
+      "allergies": "ज्ञात एलर्जी",
+      "allergiesPlaceholder": "उदा. पेनिसिलिन, मूंगफली (कॉमा से अलग करें)",
+      "conditions": "दीर्घकालिक स्थितियाँ",
+      "conditionsPlaceholder": "उदा. उच्च रक्तचाप, अस्थमा (कॉमा से अलग करें)",
+      "emergencyName": "संपर्क व्यक्ति का नाम",
+      "emergencyRelation": "संबंध",
+      "emergencyRelationPlaceholder": "उदा. पति/पत्नी, माता-पिता",
+      "emergencyPhone": "आपातकालीन फोन",
+      "genderOptions": {
+        "select": "चुनें",
+        "male": "पुरुष",
+        "female": "महिला",
+        "other": "अन्य"
+      }
+    },
+    "saveProfile": "क्लिनिकल प्रोफाइल सेव करें",
+    "saving": "वॉल्ट में सिंक हो रहा है...",
+    "saveSuccess": "क्लिनिकल प्रोफाइल सुरक्षित रूप से सिंक हो गई।",
+    "saveError": "अभी प्रोफाइल सेव नहीं हो सकी। कृपया दोबारा कोशिश करें।"
+  },
+  "firstAid": {
+    "title": "प्राथमिक उपचार गाइड",
+    "subtitle": "आपातकालीन प्रक्रियाओं के चरण-दर-चरण निर्देश",
+    "search": "आपातकालीन स्थिति खोजें...",
+    "steps": "चरण",
+    "doNot": "ये न करें",
+    "callEmergency": "अभी आपातकालीन सेवाएं बुलाएं",
+    "whileWaiting": "मदद का इंतजार करते हुए",
+    "aiGuidance": "AI मार्गदर्शन पाएं",
+    "loading": "गाइड लोड हो रही है...",
+    "disclaimer": "यह गाइड केवल जानकारी के लिए है। जीवन-खतरे की स्थिति में हमेशा आपातकालीन सेवाओं को कॉल करें।"
+  },
+  "emergency": {
+    "title": "इमरजेंसी SOS",
+    "subtitle": "AI द्वारा तुरंत प्राथमिक उपचार मार्गदर्शन",
+    "describe": "आपातकालीन स्थिति बताएं",
+    "placeholder": "उदा. किसी को दिल का दौरा पड़ रहा है, गंभीर रक्तस्राव...",
+    "getHelp": "इमरजेंसी मदद पाएं",
+    "analyzing": "इमरजेंसी विश्लेषण हो रहा है...",
+    "callNow": "अभी 112 पर कॉल करें",
+    "severity": {
+      "critical": "अत्यंत गंभीर",
+      "serious": "गंभीर",
+      "moderate": "सामान्य"
+    },
+    "steps": "आपातकालीन चरण",
+    "doNot": "ये बिल्कुल न करें",
+    "whileWaiting": "मदद का इंतजार करते हुए",
+    "disclaimer": "यह केवल AI प्राथमिक उपचार मार्गदर्शन है। तुरंत आपातकालीन चिकित्सा सेवाओं को कॉल करें।"
+  },
+  "prescription": {
+    "title": "स्मार्ट प्रिस्क्रिप्शन स्कैन",
+    "subtitle": "AI विश्लेषण के लिए अपना प्रिस्क्रिप्शन अपलोड करें",
+    "upload": "प्रिस्क्रिप्शन अपलोड करें",
+    "dragDrop": "खींचें और छोड़ें या अपलोड करने के लिए क्लिक करें",
+    "supportedFormats": "JPG, PNG, PDF समर्थित",
+    "analyze": "प्रिस्क्रिप्शन विश्लेषण करें",
+    "analyzing": "विश्लेषण हो रहा है...",
+    "medicines": "दवाइयाँ",
+    "interactions": "दवा इंटरैक्शन",
+    "alternatives": "जेनेरिक विकल्प",
+    "dietaryAdvice": "आहार सलाह",
+    "doctor": "डॉक्टर",
+    "notes": "नोट्स",
+    "history": "स्कैन इतिहास",
+    "noHistory": "अभी तक कोई प्रिस्क्रिप्शन स्कैन नहीं हुई।"
+  },
+  "medicines": {
+    "title": "दवा रिमाइंडर",
+    "subtitle": "अपनी दैनिक दवाओं को ट्रैक करें",
+    "addMedicine": "दवा जोड़ें",
+    "noMedicines": "अभी तक कोई दवा नहीं जोड़ी गई।",
+    "fields": {
+      "name": "दवा का नाम",
+      "dosage": "खुराक",
+      "frequency": "आवृत्ति",
+      "time": "समय",
+      "notes": "नोट्स"
+    },
+    "markTaken": "ली हुई मार्क करें",
+    "taken": "लिया",
+    "due": "बाकी है",
+    "overdue": "देरी हो गई"
+  },
+  "hospitals": {
+    "title": "नजदीकी अस्पताल खोजें",
+    "subtitle": "आपके पास सबसे अच्छी स्वास्थ्य सुविधाएं खोजें",
+    "search": "अस्पताल खोजें...",
+    "findNearby": "नजदीकी खोजें",
+    "locating": "लोकेट हो रहा है...",
+    "getRoute": "रास्ता पाएं",
+    "call": "कॉल करें",
+    "distance": "दूरी",
+    "noResults": "नजदीक कोई अस्पताल नहीं मिला।",
+    "locationRequired": "नजदीकी अस्पताल खोजने के लिए कृपया लोकेशन एक्सेस चालू करें।"
+  },
+  "health": {
+    "title": "मेरे वाइटल्स",
+    "subtitle": "समय के साथ अपने स्वास्थ्य मेट्रिक्स ट्रैक करें",
+    "addVital": "वाइटल्स लॉग करें",
+    "noVitals": "अभी तक कोई वाइटल्स रिकॉर्ड नहीं हुए।",
+    "fields": {
+      "bloodPressure": "ब्लड प्रेशर",
+      "heartRate": "हृदय गति",
+      "weight": "वजन",
+      "temperature": "तापमान",
+      "bloodGlucose": "रक्त शर्करा",
+      "oxygenLevel": "ऑक्सीजन स्तर",
+      "notes": "नोट्स"
+    },
+    "units": {
+      "bpm": "bpm",
+      "mmhg": "mmHg",
+      "kg": "kg",
+      "celsius": "°C",
+      "mgdl": "mg/dL",
+      "percent": "%"
+    },
+    "aiAnalysis": "AI स्वास्थ्य विश्लेषण",
+    "healthScore": "स्वास्थ्य स्कोर",
+    "riskFactors": "जोखिम कारक",
+    "positiveNotes": "सकारात्मक संकेतक"
+  },
+  "healthTools": {
+    "title": "हेल्थ कैलकुलेटर",
+    "subtitle": "अपने स्वास्थ्य मेट्रिक्स ट्रैक और कैलकुलेट करें",
+    "bmi": {
+      "title": "BMI कैलकुलेटर",
+      "height": "ऊँचाई (cm)",
+      "weight": "वजन (kg)",
+      "result": "आपका BMI",
+      "categories": {
+        "underweight": "कम वजन",
+        "normal": "सामान्य",
+        "overweight": "अधिक वजन",
+        "obese": "मोटापा"
+      }
+    },
+    "calorie": {
+      "title": "कैलोरी काउंटर",
+      "activity": "गतिविधि स्तर",
+      "daily": "दैनिक कैलोरी जरूरत"
+    },
+    "water": {
+      "title": "पानी का सेवन",
+      "recommended": "अनुशंसित दैनिक सेवन"
+    }
+  },
+  "familyVault": {
+    "title": "फैमिली वॉल्ट",
+    "subtitle": "आपके परिवार के लिए केंद्रीकृत स्वास्थ्य रिकॉर्ड",
+    "addMember": "परिवार का सदस्य जोड़ें",
+    "noMembers": "अभी तक कोई परिवार का सदस्य नहीं जोड़ा गया।",
+    "documents": "दस्तावेज़",
+    "addDocument": "दस्तावेज़ जोड़ें",
+    "noDocuments": "अभी तक कोई दस्तावेज़ नहीं।",
+    "fields": {
+      "name": "पूरा नाम",
+      "relation": "संबंध",
+      "age": "आयु",
+      "bloodGroup": "रक्त समूह"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "वापस स्वागत है",
+      "subtitle": "अपने सेहतसाथी अकाउंट में लॉगिन करें",
+      "googleButton": "Google से जारी रखें",
+      "emailLabel": "ईमेल पता",
+      "passwordLabel": "पासवर्ड",
+      "forgotPassword": "पासवर्ड भूल गए?",
+      "signIn": "लॉगिन करें",
+      "noAccount": "अकाउंट नहीं है?",
+      "signUp": "साइन अप करें"
+    },
+    "register": {
+      "title": "अकाउंट बनाएं",
+      "subtitle": "आज ही सेहतसाथी से जुड़ें",
+      "nameLabel": "पूरा नाम",
+      "emailLabel": "ईमेल पता",
+      "passwordLabel": "पासवर्ड",
+      "signUp": "अकाउंट बनाएं",
+      "hasAccount": "पहले से अकाउंट है?",
+      "signIn": "लॉगिन करें"
+    },
+    "forgotPassword": {
+      "title": "पासवर्ड रीसेट करें",
+      "subtitle": "हम आपको रीसेट लिंक भेजेंगे",
+      "emailLabel": "ईमेल पता",
+      "submit": "रीसेट लिंक भेजें",
+      "backToLogin": "लॉगिन पर वापस जाएं"
+    }
   },
   "ruralOutreach": {
     "campMode": "कैंप मोड",
@@ -76,7 +402,7 @@
     },
     "empty": {
       "title": "रोस्टर में अभी कोई ग्रामीण नहीं है",
-      "description": "पहले प्रतिभागी को जोड़ने के लिए \"Add Patient\" दबाएं।"
+      "description": "पहले प्रतिभागी को जोड़ने के लिए \"मरीज जोड़ें\" दबाएं।"
     },
     "card": {
       "village": "गांव",

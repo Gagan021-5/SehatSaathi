@@ -4,7 +4,7 @@ import Prediction from '../models/Prediction.js';
 
 export async function diabetesPredict(req, res) {
     try {
-        const { gender, age, hypertension, heart_disease, smoking_history, bmi, HbA1c_level, blood_glucose_level, language = 'en' } = req.body;
+        const { gender, age, hypertension, heart_disease, smoking_history, bmi, HbA1c_level, blood_glucose_level, language = 'en', patientName = '' } = req.body;
 
         if (!gender || age === undefined || bmi === undefined) {
             return res.status(400).json({ error: 'Missing required fields' });
@@ -21,7 +21,7 @@ export async function diabetesPredict(req, res) {
 
         let aiExplanation = {};
         try {
-            aiExplanation = await explainDiabetesRisk(mlResult, patientData, language);
+            aiExplanation = await explainDiabetesRisk(mlResult, patientData, language, patientName);
         } catch (err) {
             console.error('Gemini explain error:', err.message);
             aiExplanation = { summary: 'AI explanation unavailable. Please consult a doctor.', recommendations: [] };

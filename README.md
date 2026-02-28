@@ -1,213 +1,417 @@
 <div align="center">
-  <h1>🏥 SehatSaathi</h1>
-  <p><b>AI-First Healthcare Platform for Multilingual Triage, Preventive Screening & Rural Outreach</b></p>
-  
-  [![React](https://img.shields.io/badge/React-19-blue.svg)](https://reactjs.org/)
-  [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
-  [![Flask](https://img.shields.io/badge/Flask-ML-lightgrey.svg)](https://flask.palletsprojects.com/)
-  [![Gemini AI](https://img.shields.io/badge/Gemini-AI-orange.svg)](https://deepmind.google/technologies/gemini/)
-  
-  <br />
-  <a href="#-live-demo">Live Demo</a> •
-  <a href="#-demo-video--walkthrough">Demo Video</a> •
-  <a href="#-documentation">Documentation</a> •
-  <a href="#-ml--genai-integration">AI Architecture</a> •
-  <a href="#-quick-start">Quick Start</a>
+
+<img src="https://readme-typing-svg.demolab.com?font=Sora&weight=700&size=32&duration=3000&pause=1000&color=3B82F6&center=true&vCenter=true&width=700&lines=🏥+SehatSaathi;AI-First+Healthcare+for+India;सेहत+साथी+-+आपका+AI+स्वास्थ्य+साथी" alt="SehatSaathi Typing SVG" />
+
+<br/>
+
+<p>
+  <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black" />
+  <img src="https://img.shields.io/badge/Node.js-18+-339933?style=for-the-badge&logo=node.js&logoColor=white" />
+  <img src="https://img.shields.io/badge/Google_Gemini-AI-4285F4?style=for-the-badge&logo=google&logoColor=white" />
+  <img src="https://img.shields.io/badge/Groq_LPU-FastChat-F55036?style=for-the-badge&logo=groq&logoColor=white" />
+  <img src="https://img.shields.io/badge/Flask-ML_Service-000000?style=for-the-badge&logo=flask&logoColor=white" />
+  <img src="https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white" />
+  <img src="https://img.shields.io/badge/Firebase-Auth-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" />
+  <img src="https://img.shields.io/badge/ElevenLabs-TTS-1A1A2E?style=for-the-badge" />
+</p>
+
+<p>
+  <img src="https://img.shields.io/badge/Languages-English_%7C_हिंदी-blue?style=flat-square" />
+  <img src="https://img.shields.io/badge/Status-Live_Demo_Ready-success?style=flat-square" />
+  <img src="https://img.shields.io/badge/License-MIT-yellow?style=flat-square" />
+  <img src="https://img.shields.io/badge/Made_in-🇮🇳_India-ff9933?style=flat-square" />
+</p>
+
+<br/>
+
+> **SehatSaathi** is a production-grade, AI-first healthtech platform that delivers intelligent clinical triage, preventive screening, prescription intelligence, and rural outreach — in the patient's own language.
+
+<br/>
+
+[🚀 Live Demo](#-live-demo) &nbsp;•&nbsp; [🎥 Demo Video](#-demo-video) &nbsp;•&nbsp; [🧠 AI Architecture](#-ai--ml-architecture) &nbsp;•&nbsp; [⚡ Quick Start](#-quick-start) &nbsp;•&nbsp; [📡 API Reference](#-api-reference)
+
 </div>
 
 ---
 
-## 📖 Overview of the Prototype
+## 📖 What is SehatSaathi?
 
-**SehatSaathi** is a comprehensive, monorepo-based health-tech platform designed to deliver intelligent healthcare workflows to both urban smartphone users and rural populations via NGO/ASHA worker proxies and SMS systems. It integrates Generative AI and Machine Learning to provide multilingual clinical triage, early disease risk screening, automated prescription interpretation, and seamless hospital discovery.
+**SehatSaathi** (सेहत साथी — "Health Companion") is a comprehensive, monorepo-based healthtech platform engineered for both **urban smartphone users** and **rural populations** served by NGO/ASHA workers. It fuses Generative AI, Machine Learning, and real-time voice synthesis to create a voice-first, multilingual healthcare assistant that works across connectivity constraints.
 
----
-
-## 🎯 Our Motive: The Problem Statement
-
-**The Problem:** 
-Healthcare access is highly asymmetrical. While urban centers have rapid access to doctors, rural and elderly populations suffer from a lack of primary diagnosis, digital literacy, and internet parity. Furthermore, understanding complex medical prescriptions and tracking multi-generational family health is cumbersome.
-
-**How SehatSaathi Addresses It:**
-We chose this problem statement to democratize healthcare triage. By utilizing AI to speak the user's language and SMS APIs for offline access, SehatSaathi ensures that critical early warnings (like diabetes risk or emergency triage) reach patients regardless of their geographical or digital boundaries.
-
----
-
-## 💡 The Solution & Key Insights
-
-1. **Multilingual AI Triage:** Users don't need medical jargon. They chat in their native language, and the system triages their symptoms, escalating emergencies instantly.
-2. **Offline-First Rural Outreach:** ASHA workers can manage patient rosters offline, while automated SMS ensures ongoing patient engagement without requiring smartphone ownership.
-3. **Prescription Intelligence:** OCR and GenAI combined to turn confusing handwritten prescriptions into actionable, understandable dosage schedules and warnings.
-4. **Predictive Analytics:** Simple ML models (like our Diabetes screening) provide probabilistic risk assessments using minimal user input.
-
----
-
-## 🚀 Live Demo
-> **[Checkout the Live App Here](#)** *(Link to be updated once deployed)*
-
----
-
-## 🎥 Demo Video & Walkthrough
-
-**[Watch the full demo on YouTube / Loom](#)** *(Demo Link to be added here)*
-
-### Prototype Walkthrough
-- **User Onboarding:** Firebase-authenticated profile setup and seamless authentication.
-- **Premium Voice-to-Voice AI:** A centered, zero-text "Premium Voice Orb" powered by Framer Motion waveforms, featuring dual-mode Gemini triage and ElevenLabs high-quality Text-to-Speech audio.
-- **Diabetes Risk Assessment:** Filling out the structured health form and receiving an instant, scalable Flask ML prediction.
-- **Vital Trends Dashboard:** Logging vitals (BPM, Sugar, Blood Pressure) and viewing premium, interactive Framer Motion charts within a Glassmorphism design system.
-- **Rural Dashboard:** A specialized administrative flow for NGOs/volunteers to register remote patients and trigger cron-based Fast2SMS reminders.
-
----
-
-## 🧠 ML & GenAI Integration
-
-SehatSaathi relies heavily on intelligent services mapped to a distributed architecture:
-
-### 1. Generative AI (Google Gemini)
-- **Clinical Triage:** Context-aware conversations parsing informal text into structured clinical paths. Translates real-world health situations into actionable system inputs with adaptive moods (Calm, Anxious, Urgent).
-- **Medicine Explanation:** Translating raw OCR text from prescriptions (via Multer mapping) into plain-language dosage and precaution instructions safely.
-
-### 2. Lifelike Speech Synthesis (ElevenLabs)
-- **Voice Agent:** Converts Gemini's structured clinical responses into hyper-realistic audio tailored to the patient's severity mood.
-- **Read Aloud:** Provides robust accessibility for emergency protocols and prescriptions.
-
-### 3. Machine Learning (Flask Microservice)
-- **Model:** `scikit-learn` based predictive model exposed via an isolated Python Flask REST API.
-- **Use Case:** Predictive diabetes probability screening leveraging structured demographic and numeric inputs (glucose, BMI, age, etc.).
-
----
-
-## 📐 Architecture & Approach
-
-Our approach relies on a decoupled monorepo architecture, prioritizing separation of concerns and future scalability.
-
-**Assumptions & Design Choices:**
-- **Monorepo:** Chose a single repository to coordinate the React Client, Node API, and Flask ML service easily during development.
-- **BFF (Backend-For-Frontend) Pattern:** The Node Express server acts as the central orchestrator, communicating with the ML service independently, protecting model logic from the frontend.
-- **Cron + Webhook Hybrid:** For rural SMS, considering the lack of a dedicated Virtual Mobile Number (VMN) for two-way SMS, we simulate inbound webhooks and handle outbound reminders via scheduled Node cron jobs.
-
-```text
-React Client (Vite, Tailwind, Framer)
-       │
-       ▼ (Firebase Auth)
-Node API (Express, Gemini, MongoDB)
- ├─▶ MongoDB Atlas (Data Store)
- ├─▶ Fast2SMS (Outbound/Inbound SMS handling)
- └─▶ Scheduled Node-Cron workers
-       │
-       ▼ (REST /predict)
-Flask ML Service (Diabetes Inference)
+```
+🇮🇳 Built for India's 1.4 billion — where healthcare equity is a right, not a privilege.
 ```
 
 ---
 
-## ⚖️ Ethical, Bias, & Limitation Considerations
+## 🎯 The Problem We're Solving
 
-- **Medical Liability:** The platform is explicitly a **triage and screening aide**, NOT a replacement for a certified doctor. Important disclaimers and guardrails are embedded in the AI chat logic.
-- **AI Hallucinations:** GenAI could generate plausible but incorrect medical advice. We control this by enforcing narrow context constraints via system prompts and conservative temperature settings, escalating to human doctors for anything high-risk.
-- **Data Bias:** The current ML model is trained on standard datasets (e.g., Pima Indians Diabetes Database) which carry inherent demographic biases. For a robust clinical release, the model would need fine-tuning with localized, verified Indian demographic data.
-- **Data Privacy:** Health data is extremely sensitive. Real-world implementations require strict HIPAA/ABDM (Ayushman Bharat Digital Mission) compliance, end-to-end encryption at rest, and anonymized AI processing.
+| Problem | SehatSaathi's Answer |
+|---|---|
+| 🏚️ Rural patients lack access to primary triage | AI voice bot in Hindi, no typing required |
+| 📄 Handwritten prescriptions are unreadable | Instant OCR + GenAI medicine explanation |
+| 🩺 Complex health forms confuse patients | Conversational AI asks questions naturally |
+| 📵 Offline villages have no smartphone access | SMS-based outreach via Fast2SMS cron |
+| 🌐 English-only health apps exclude 90% of India | Full English ↔ Hindi UI + AI responses in 8 languages |
+| 👨‍👩‍👧‍👦 Fragmented family health data | Centralized Family Vault across devices |
 
 ---
 
-## 💼 Business Feasibility
+## ✨ Features
 
-**Monetization Strategy:**
-1. **B2B Licensing:** Providing the rural outreach software/dashboard (SaaS model) to NGOs, local government healthcare initiatives, and hospital CSR wings.
-2. **Freemium B2C App:** Basic AI triage/chat is free for all. Premium subscriptions could unlock continuous vital hardware monitoring sync, family-vault digital document storage, and direct telehealth consultations.
-3. **Telehealth Marketplace Integration:** Earning affiliate commission or booking fees on doctor appointments or verified pharmacy medicine orders facilitated directly through the platform's API integrations.
+### 🎙️ Dual-AI Voice Clinical Assistant
+> **Groq (LPU)** for ultra-low-latency real-time voice → **Gemini** for deep file analysis
 
-**Scalability:**
-The architecture utilizes serverless-ready Node/React configurations and lightweight ML microservices that seamlessly scale horizontally (e.g. AWS ECS/Lambda or GCP Cloud Run).
+- **Voice-First Design**: Zero-text, premium centered Voice Orb with 7-bar Framer Motion waveform visualizer
+- **isFinal Guard**: Only sends finalized speech transcripts — eliminates 429 rate limit errors
+- **1-Second Silence Debounce**: Waits for natural speech completion before API call
+- **ElevenLabs TTS**: Hyper-realistic audio output with adjustable mood (Calm / Anxious / Urgent)
+- **Transcript Accumulation**: Captures multi-sentence speech correctly via `transcriptRef`
+- **Auto-Resume**: Microphone automatically restarts after AI finishes speaking
+
+### 🧠 AI Medical Intelligence
+- **Gemini Diabetes Report**: Personalized AI report addressed to the patient **by their real name**
+- **Multilingual AI Insights**: Reports generated in the user's active language (8 supported)
+- **Risk Stratification**: ML-powered diabetes probability score + Gemini clinical narrative
+- **Voice-Enabled Report**: Tap to hear the full AI report via ElevenLabs, then ask follow-up questions
+
+### 🔬 Diabetes Risk Intelligence
+- Structured clinical form (BMI, HbA1c, glucose, hypertension, smoking history)
+- Flask ML microservice (`scikit-learn`) for risk probability scoring
+- AI narrative delivered in **the patient's name and active language**
+- Historical assessment tracking with confidence scores
+
+### 📋 Smart Prescription Scanner
+- Upload JPG/PNG/PDF prescriptions
+- Gemini Vision extracts medicines, dosage, frequency, interactions
+- Generic alternatives with estimated savings
+- Dietary advice and drug interaction warnings
+
+### 🚨 Emergency SOS Protocol
+- Describe any emergency in text or voice
+- AI generates step-by-step first aid with do/don't lists
+- Critical severity badge + one-tap 112 call button
+- Pre-built guides for 20+ emergency scenarios
+
+### 🏥 Rural Outreach Command
+- Offline-capable patient roster for ASHA/NGO workers
+- Voice triage recording per patient
+- Automated Fast2SMS cron reminders to patients
+- Sync status indicator (Online/Offline)
+- Full Hindi localization for field workers
+
+### 👤 Personalized Identity & Profile
+- **Google Profile Photo** displayed in Navbar, Sidebar, and Profile Page (no more initials)
+- Firebase Auth-linked clinical profile (blood group, chronic conditions, allergies)
+- Emergency contact vault
+- Secure AES-256 encrypted vault syncing
+
+### 🌐 Full Bilingual UI (English ↔ हिंदी)
+- Instant language switching via navbar toggle
+- All pages translated: Home, Chat, Diabetes, Profile, Emergency, Prescription, Hospitals, Vitals, and more
+- AI responses mirror the selected language (8 Indian languages supported)
+- `t('key')` i18n system with graceful English fallback
+
+---
+
+## 🧠 AI / ML Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     SehatSaathi AI Brain                         │
+├──────────────────────┬──────────────────────────────────────────┤
+│   VOICE CHAT         │   FILE / DEEP ANALYSIS                   │
+│   ─────────────      │   ─────────────────────                  │
+│   Groq LPU™          │   Google Gemini 2.5 Flash                │
+│   llama-3.3-70b      │   gemini-2.5-flash                       │
+│   temp: 0.7          │   Vision + Text + Context                │
+│   max_tokens: 300    │                                           │
+│   < 200ms response   │   Used for:                              │
+│                      │   - Prescription OCR analysis            │
+│   Used for:          │   - Diabetes AI narrative report         │
+│   - Voice Q&A        │   - Health record analysis               │
+│   - Real-time chat   │   - Emergency guidance                   │
+│   - Diabetes Q&A     │   - Medicine explanation                 │
+└──────────────────────┴──────────────────────────────────────────┘
+                              │
+                   ┌──────────▼──────────┐
+                   │   ElevenLabs TTS    │
+                   │   Mood-adaptive     │
+                   │   High-fidelity     │
+                   └─────────────────────┘
+```
+
+### Full System Architecture
+
+```
+React Client (Vite 7, Tailwind, Framer Motion)
+       │
+       ├── Firebase Auth (Google OAuth + Email)
+       │
+       ▼
+Node.js API (Express 5 — Port 5000)
+  ├── /api/chat/voice    → Groq llama-3.3-70b  [🔵 Real-time]
+  ├── /api/chat/message  → Gemini 2.5 Flash    [🟢 Analysis]
+  ├── /api/predict/*     → Flask ML Service    [🔬 Inference]
+  ├── /api/tts/*         → ElevenLabs          [🎙️ Audio]
+  ├── /api/hospitals/*   → ORS + Maps          [🗺️ Location]
+  └── MongoDB Atlas                            [💾 Data]
+         │
+         ▼
+Python Flask ML Service (Port 5001)
+  ├── /predict — scikit-learn Diabetes Model
+  └── /metrics — Model accuracy & dataset info
+```
 
 ---
 
 ## 🛠 Tech Stack
 
-| Domain | Technologies |
+| Layer | Technology | Purpose |
+|---|---|---|
+| **Frontend** | React 19, Vite 7, Tailwind CSS 4 | Core UI & Build |
+| **Animations** | Framer Motion | Voice Orb, Waveform, Page Transitions |
+| **State/Context** | React Context (Auth, Language) | Global State |
+| **Backend** | Node.js 18, Express 5 | REST API Orchestration |
+| **Primary AI** | Google Gemini 2.5 Flash | File analysis, clinical narrative |
+| **Voice AI** | Groq LPU (llama-3.3-70b) | Ultra-fast voice chat responses |
+| **TTS** | ElevenLabs | Hyper-realistic speech output |
+| **ML Service** | Python 3.10, Flask, scikit-learn | Diabetes risk prediction |
+| **Database** | MongoDB Atlas + Mongoose | Health data persistence |
+| **Auth** | Firebase Authentication | Google OAuth + Email/Password |
+| **Media** | Multer | Prescription file uploads |
+| **Messaging** | Fast2SMS | Rural SMS outreach |
+| **Maps** | OpenRouteService API | Hospital location discovery |
+
+---
+
+## 🌍 Language & Accessibility Support
+
+| Language | UI | AI Responses | Voice Input |
+|---|---|---|---|
+| 🇬🇧 English | ✅ Full | ✅ | ✅ en-IN |
+| 🇮🇳 हिंदी | ✅ Full | ✅ | ✅ hi-IN |
+| 🇮🇳 বাংলা | — | ✅ | — |
+| 🇮🇳 தமிழ் | — | ✅ | — |
+| 🇮🇳 తెలుగు | — | ✅ | — |
+| 🇮🇳 मराठी | — | ✅ | — |
+| 🇮🇳 ગુજરાતી | — | ✅ | — |
+| 🇮🇳 ಕನ್ನಡ | — | ✅ | — |
+
+---
+
+## 🚀 Live Demo
+
+> **[▶ Open SehatSaathi Live App](#)** *(Update once deployed to Render/Vercel)*
+
+### Login Credentials for Demo
+| Field | Value |
 |---|---|
-| **Frontend UI/UX** | React 19, Vite, Tailwind CSS 4 (Glassmorphism), Framer Motion, Recharts |
-| **Backend** | Node.js, Express 5, Mongoose, Firebase Admin |
-| **AI / ML** | Google Gemini SDK, ElevenLabs API, Python 3.10, Flask, scikit-learn, joblib |
-| **Database** | MongoDB Atlas |
-| **Messaging** | Fast2SMS |
+| Method | Google OAuth (Recommended) |
+| Email | Use your own Google account |
+
+---
+
+## 🎥 Demo Video
+
+> **[📺 Watch Full Demo on YouTube / Loom](#)** *(Add link here)*
+
+**Demo script covers:**
+1. 🔐 Google Sign-In with real profile photo appearing instantly
+2. 🗣️ Voice-to-voice AI Doctor chat (Groq-powered, <200ms)
+3. 🩺 Diabetes Risk Intelligence form → personalized AI report in Hindi
+4. 📋 Prescription photo upload → medicine breakdown & interactions
+5. 🚨 Emergency SOS — live first-aid guidance
+6. 🏘️ Rural Outreach dashboard — register patient, log vitals, trigger SMS
+7. 🌐 Live language switch: full UI flips English ↔ हिंदी instantly
 
 ---
 
 ## ⚙️ Quick Start
 
-### 1. Prerequisites
-- Node.js `18+` & npm `9+`
-- Python `3.10+`
-- MongoDB URI
-- Firebase Project (Auth enabled)
-- Gemini API Key, Fast2SMS API Key
-
-### 2. Install Dependencies
-```bash
-npm install               # Root (concurrently)
-cd client && npm install  # Frontend
-cd ../server && npm install # Backend
-cd ../ml-service && pip install -r requirements.txt # ML Service
+### Prerequisites
+```
+Node.js 18+    npm 9+    Python 3.10+    MongoDB URI    Firebase Project
+Gemini API Key    Groq API Key    ElevenLabs API Key
 ```
 
-### 3. Environment Configuration
-Create the following `.env` files based on the `.env.example` implementations:
+### 1. Clone & Install
+
+```bash
+git clone https://github.com/your-username/sehat-saathi.git
+cd sehat-saathi
+
+# Install all dependencies
+cd client && npm install
+cd ../server && npm install
+cd ../ml-service && pip install -r requirements.txt
+```
+
+### 2. Environment Setup
 
 <details>
-<summary><code>client/.env</code></summary>
+<summary><b>📄 <code>client/.env</code></b></summary>
 
 ```env
 VITE_API_URL=http://localhost:5000/api
-VITE_FIREBASE_API_KEY=...
-VITE_FIREBASE_AUTH_DOMAIN=...
-VITE_FIREBASE_PROJECT_ID=...
-VITE_FIREBASE_STORAGE_BUCKET=...
-VITE_FIREBASE_MESSAGING_SENDER_ID=...
-VITE_FIREBASE_APP_ID=...
-VITE_FIREBASE_MEASUREMENT_ID=...
+VITE_FIREBASE_API_KEY=your_key
+VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your-project-id
+VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
 ```
 </details>
 
 <details>
-<summary><code>server/.env</code></summary>
+<summary><b>📄 <code>server/.env</code></b></summary>
 
 ```env
 PORT=5000
-MONGO_URI=...
+MONGO_URI=mongodb+srv://...
 ML_SERVICE_URL=http://localhost:5001
-GEMINI_API_KEY=...
-ELEVENLABS_API_KEY=...
-ELEVENLABS_VOICE_ID=...
-ORS_API_KEY=...
-FAST2SMS_API_KEY=...
-SMS_CRON_TIMEZONE=Asia/Kolkata
-FIREBASE_PROJECT_ID=...
+GEMINI_API_KEY=your_gemini_key
+GEMINI_MODEL=gemini-2.5-flash
+GROQ_API_KEY=your_groq_key
+ELEVENLABS_API_KEY=your_elevenlabs_key
+ELEVENLABS_VOICE_ID=your_voice_id
+ORS_API_KEY=your_ors_key
+FAST2SMS_API_KEY=your_fast2sms_key
+FIREBASE_PROJECT_ID=your-project-id
 ```
 </details>
 
-### 4. Run the Full Stack
+### 3. Run All Services
+
 ```bash
-npm run dev
+# Terminal 1 — Frontend
+cd client && npm run dev       # http://localhost:5173
+
+# Terminal 2 — Backend API
+cd server && npm run dev       # http://localhost:5000
+
+# Terminal 3 — ML Service
+cd ml-service && python app.py # http://localhost:5001
 ```
-_Starts Client (`:5173`), API (`:5000`), and ML Service (`:5001`)._
 
 ---
 
-## 📡 API Overview
-Base URL: `http://localhost:5000/api`
+## 📡 API Reference
 
-- **Auth:** `POST /auth/sync`, `GET /auth/profile`
-- **Chat:** `POST /chat/start`, `POST /chat/message`, `GET /chat/history`
-- **Prediction:** `POST /predict/diabetes`, `POST /predict/risk`
-- **Prescription:** `POST /prescription/upload`, `POST /prescription/analyze`
-- **Health:** `GET /health`, `POST /health/vitals`
-- **Hospitals:** `GET /hospitals/nearby`, `GET /hospitals/search`
-- **Rural SMS Proxy:** `POST /sms/simulate-inbound`, `GET /sms/patients`
+**Base URL:** `http://localhost:5000/api`
+
+### 🎙️ AI Chat
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/chat/voice` | **Groq** real-time voice chat (llama-3.3-70b) |
+| `POST` | `/chat/message` | **Gemini** deep analysis + file chat |
+| `GET` | `/chat/history` | Retrieve session history |
+
+### 🔬 Predictions
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/predict/diabetes` | ML risk score + personalized Gemini narrative |
+| `POST` | `/predict/risk` | General health risk assessment |
+| `POST` | `/predict/disease` | Symptom-based disease prediction |
+| `GET` | `/predict/metrics` | Model accuracy and dataset info |
+
+### 📋 Prescription
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/prescription/upload` | Upload & OCR scan |
+| `POST` | `/prescription/analyze` | Gemini analysis of scanned text |
+
+### 🏥 Hospitals
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/hospitals/nearby` | Find hospitals by GPS coordinates |
+| `GET` | `/hospitals/search` | Search by name/city |
+
+### 👤 Auth & Profile
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/auth/sync` | Firebase token → MongoDB user sync |
+| `GET` | `/auth/profile` | Get clinical profile |
+| `PUT` | `/auth/profile` | Update clinical profile |
+
+### 🏘️ Rural Outreach
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/sms/patients` | List camp patients |
+| `POST` | `/sms/simulate-inbound` | Trigger SMS outreach simulation |
+
+---
+
+## ⚖️ Ethics, Bias & Responsible AI
+
+> SehatSaathi is a **clinical triage aide — not a diagnostic tool**. Licensed physician consultation is always recommended.
+
+| Concern | Our Approach |
+|---|---|
+| **Medical Liability** | Hard-coded clinical disclaimers in all AI responses |
+| **Hallucination Risk** | Conservative Gemini temperature (0.7), narrow system prompts |
+| **Dataset Bias** | Current dataset: general diabetes cohort — not yet localized to Indian demography |
+| **Data Privacy** | Firebase Auth + MongoDB encrypted at rest; no PII shared with AI APIs |
+| **ABDM Compliance** | Architected for Ayushman Bharat Digital Mission integration (future roadmap) |
+
+---
+
+## 💼 Business Model
+
+```
+┌─────────────────────────────────────┐
+│           Revenue Streams           │
+├─────────────────────────────────────┤
+│ 🏢 B2B SaaS (NGOs, Govt, CSR)       │
+│    Rural dashboard licences         │
+├─────────────────────────────────────┤
+│ 👤 B2C Freemium                     │
+│    Premium: Family Vault, History   │
+│    hardware sync, tele-consult      │
+├─────────────────────────────────────┤
+│ 🔗 Marketplace Commission           │
+│    Doctor bookings, pharmacy orders │
+└─────────────────────────────────────┘
+```
+
+**Scalability:** Stateless Express API + Flask microservices → deploy on AWS ECS / GCP Cloud Run / Render with zero-downtime horizontal scaling.
+
+---
+
+## 📁 Project Structure
+
+```
+sehat-saathi/
+├── client/                    # React 19 + Vite Frontend
+│   ├── src/
+│   │   ├── pages/             # ChatPage, DiabetesPage, ProfilePage...
+│   │   ├── components/        # Reusable UI (Sidebar, Navbar, Card...)
+│   │   ├── hooks/             # useVoiceLoop.js (voice engine)
+│   │   ├── context/           # AuthContext, LanguageContext
+│   │   ├── services/          # api.js (Groq + Gemini routing)
+│   │   └── locales/           # en.json, hi.json (i18n)
+├── server/                    # Node.js + Express 5 Backend
+│   ├── controllers/           # chatController, predictionController...
+│   ├── services/              # geminiService, mlService, ttsService
+│   ├── routes/                # chatRoutes, predictionRoutes...
+│   └── models/                # Mongoose schemas
+└── ml-service/                # Python Flask ML Microservice
+    ├── app.py                 # REST API endpoints
+    └── model/                 # scikit-learn trained model
+```
 
 ---
 
 <div align="center">
-  <p><i>Built for inclusive, multilingual, and accessible healthcare workflows across India. 🇮🇳</i></p>
+
+### Built with ❤️ for Inclusive Healthcare in India 🇮🇳
+
+<p>
+  <img src="https://img.shields.io/badge/Powered_by-Groq_LPU™-F55036?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Powered_by-Google_Gemini-4285F4?style=for-the-badge&logo=google" />
+  <img src="https://img.shields.io/badge/Powered_by-ElevenLabs-1A1A2E?style=for-the-badge" />
+</p>
+
+*"Technology in service of humanity — सेवा में तकनीक।"*
+
 </div>

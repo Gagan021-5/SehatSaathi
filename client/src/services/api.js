@@ -56,6 +56,13 @@ export const sendMessage = ({ message = '', history = [], language = 'en', sessi
         language: typeof language === 'string' && language.trim() ? language : 'en',
         sessionId,
     });
+export const sendVoiceMessage = ({ message = '', history = [], language = 'en', sessionId } = {}) =>
+    api.post('/chat/voice', {
+        message: typeof message === 'string' ? message : `${message ?? ''}`,
+        history: Array.isArray(history) ? history : [],
+        language: typeof language === 'string' && language.trim() ? language : 'en',
+        sessionId,
+    });
 export const getChatHistory = () => api.get('/chat/history');
 export const getEmergencyGuidance = (data) => api.post('/chat/emergency', data);
 export const synthesizeSpeech = (data) => api.post('/chat/synthesize', data);

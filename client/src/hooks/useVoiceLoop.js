@@ -45,6 +45,8 @@ export function useVoiceLoop({ lang = 'en-US', onSpeechResult }) {
         }
     };
 
+    const transcriptRef = useRef('');
+
     // Initialize Speech Recognition
     useEffect(() => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -57,11 +59,11 @@ export function useVoiceLoop({ lang = 'en-US', onSpeechResult }) {
 
         recognizer.onstart = () => {
             setIsListening(true);
+            // Only reset transcript when starting fresh — NOT when restarting mid-deounce
             clearSilenceTimer();
             silenceTimeoutRef.current = setTimeout(() => {
                 playPing();
                 toast('Voice session paused. Still there?', { icon: '💤' });
-                // We must use the ref to cleanly stop since closures trap old state
                 if (recognitionRef.current) recognitionRef.current.stop();
                 sessionActiveRef.current = false;
                 setIsListening(false);
@@ -71,21 +73,30 @@ export function useVoiceLoop({ lang = 'en-US', onSpeechResult }) {
         recognizer.onresult = (event) => {
             clearSilenceTimer();
 
-            let finalTranscript = '';
+            let currentFinal = '';
             for (let i = event.resultIndex; i < event.results.length; ++i) {
                 if (event.results[i].isFinal) {
-                    finalTranscript += event.results[i][0].transcript;
+                    currentFinal += event.results[i][0].transcript;
                 }
             }
 
-            if (finalTranscript.trim().length > 2 && sessionActiveRef.current && !isSpeakingRef.current) {
-                // 1000ms Silence Debounce
+            if (currentFinal) {
+                transcriptRef.current += ' ' + currentFinal;
+            }
+
+            const completeTranscript = transcriptRef.current.trim();
+
+            if (completeTranscript.length > 2 && sessionActiveRef.current && !isSpeakingRef.current) {
+                // 1000ms Silence Debounce for Demo Stability
                 silenceTimeoutRef.current = setTimeout(() => {
                     if (sessionActiveRef.current && !isSpeakingRef.current) {
+                        const final = transcriptRef.current.trim();
+                        transcriptRef.current = ''; // Reset for next turn
+
                         setIsListening(false);
-                        // Strictly disable mic while thinking/waiting for API response
+                        // Step 2 & 3: Immediately stop listener and trigger result (showing Thinking)
                         if (recognitionRef.current) recognitionRef.current.stop();
-                        if (onSpeechResultRef.current) onSpeechResultRef.current(finalTranscript.trim());
+                        if (onSpeechResultRef.current) onSpeechResultRef.current(final);
                     }
                 }, 1000);
             }
@@ -115,9 +126,14 @@ export function useVoiceLoop({ lang = 'en-US', onSpeechResult }) {
 
         recognizer.onend = () => {
             setIsListening(false);
-            clearSilenceTimer();
-            if (sessionActiveRef.current && !isSpeakingRef.current) {
+            // IMPORTANT: Do NOT clear the silence timer here!
+            // If there's a pending transcript in the debounce, killing the timer
+            // means the user's speech will never get sent to the AI.
+            // Only restart listening if there is NO pending transcript waiting to fire.
+            const hasPendingTranscript = transcriptRef.current.trim().length > 0;
+            if (sessionActiveRef.current && !isSpeakingRef.current && !hasPendingTranscript) {
                 try {
+                    transcriptRef.current = ''; // Safe to reset only when truly starting fresh
                     recognizer.start();
                 } catch (e) {
                     // Ignore already started errors

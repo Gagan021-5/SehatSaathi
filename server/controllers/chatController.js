@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
+import Groq from 'groq-sdk';
 
 const sessions = new Map();
 const GEMINI_MODEL = 'gemini-2.0-flash';
@@ -62,6 +63,10 @@ const elevenlabs = elevenLabsApiKey
     ? new ElevenLabsClient({ apiKey: elevenLabsApiKey })
     : null;
 
+const groq = process.env.GROQ_API_KEY
+    ? new Groq({ apiKey: process.env.GROQ_API_KEY })
+    : null;
+
 function toGeminiHistory(history = []) {
     if (!Array.isArray(history)) return [];
     return history
@@ -70,6 +75,18 @@ function toGeminiHistory(history = []) {
             if (!text) return null;
             const role = item?.role === 'assistant' || item?.role === 'model' ? 'model' : 'user';
             return { role, parts: [{ text }] };
+        })
+        .filter(Boolean);
+}
+
+function toGroqHistory(history = []) {
+    if (!Array.isArray(history)) return [];
+    return history
+        .map((item) => {
+            const content = `${item?.content ?? item?.text ?? item?.parts?.[0]?.text ?? ''}`.trim();
+            if (!content) return null;
+            const role = item?.role === 'assistant' || item?.role === 'model' ? 'assistant' : 'user';
+            return { role, content };
         })
         .filter(Boolean);
 }
@@ -183,6 +200,72 @@ async function synthesizeMoodAudio(text, mood) {
         audioBase64: buffer.length ? buffer.toString('base64') : '',
         audioMimeType: 'audio/mpeg',
     };
+}
+
+export async function voiceChat(req, res) {
+    try {
+        const { message, history, language, sessionId } = req.body || {};
+        const userMessage = typeof message === 'string' ? message.trim() : '';
+        const safeHistory = Array.isArray(history) ? history : [];
+        const safeLanguage = typeof language === 'string' && language.trim() ? language.trim() : 'en';
+
+        if (!userMessage) return res.status(400).json({ error: 'Message is required' });
+        if (!groq) {
+            return res.status(500).json({
+                success: false,
+                error: 'GROQ_API_KEY is not configured on server',
+            });
+        }
+
+        const sid = sessionId || `session_${Date.now()}`;
+        if (!sessions.has(sid)) sessions.set(sid, { messages: [], language: safeLanguage });
+
+        const session = sessions.get(sid);
+        session.language = safeLanguage;
+
+        const groqHistory = toGroqHistory(safeHistory);
+        const completion = await groq.chat.completions.create({
+            model: "llama-3.3-70b-versatile",
+            messages: [
+                { role: "system", content: SYSTEM_INSTRUCTION },
+                ...groqHistory,
+                { role: "user", content: userMessage }
+            ],
+            temperature: 0.7,
+            max_tokens: 300,
+            response_format: { type: "json_object" }
+        });
+
+        const rawText = completion.choices[0]?.message?.content || "";
+        const structured = tryParseStructuredPayload(rawText);
+        const mood = normalizeMood(structured.mood);
+        const text = structured.text;
+
+        session.messages.push({ role: 'user', content: userMessage });
+        session.messages.push({ role: 'assistant', content: text, mood });
+
+        let audioPayload = { audioBase64: '', audioMimeType: '' };
+        if (elevenlabs) {
+            try {
+                audioPayload = await synthesizeMoodAudio(text, mood);
+            } catch (ttsError) {
+                console.error('[GROQ-VOICE] TTS failed:', ttsError.message);
+            }
+        }
+
+        return res.json({
+            success: true,
+            sessionId: sid,
+            mood,
+            text,
+            response: text,
+            audioBase64: audioPayload.audioBase64,
+            audioMimeType: audioPayload.audioMimeType,
+        });
+    } catch (err) {
+        console.error('[GROQ-VOICE] error:', err);
+        return res.status(500).json({ success: false, error: 'Groq interaction failed' });
+    }
 }
 
 export async function sendMessage(req, res) {

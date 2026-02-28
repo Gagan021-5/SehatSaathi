@@ -2,37 +2,39 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, RefreshCcw } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
-import { sendMessage } from '../services/api';
+import { sendMessage, sendVoiceMessage } from '../services/api';
 import { useVoiceLoop } from '../hooks/useVoiceLoop';
 import toast from 'react-hot-toast';
 import PageTransition from '../components/common/PageTransition';
 
-function VoiceWaveform({ phase }) {
+function VoiceVisualizer({ phase }) {
     const isListening = phase === 'listening';
     const isSpeaking = phase === 'speaking';
     const isThinking = phase === 'thinking';
+    const numBars = 7;
 
     return (
         <div className="flex items-center justify-center gap-1.5 h-12">
-            {[0, 1, 2, 3].map((i) => {
-                let animate = { height: 6 };
+            {[...Array(numBars)].map((_, i) => {
+                let animate = { height: 4 };
                 let transition = { duration: 0.3 };
 
-                if (isListening) {
-                    const dancePatterns = [
-                        [14, 30, 18, 40, 14],
-                        [22, 14, 36, 20, 22],
-                        [30, 42, 26, 34, 30],
-                        [20, 28, 46, 14, 20]
-                    ];
-                    animate = { height: dancePatterns[i] };
-                    transition = { duration: 0.5, repeat: Infinity, ease: 'linear' };
-                } else if (isSpeaking) {
-                    animate = { height: [12, 40, 12] };
-                    transition = { duration: 0.6, repeat: Infinity, ease: 'easeInOut' };
+                if (isListening || isSpeaking) {
+                    // Staggered random heights for real-time wave look
+                    animate = {
+                        height: [10, 32, 14, 40, 18, 28, 10],
+                        opacity: [0.7, 1, 0.7]
+                    };
+                    transition = {
+                        duration: 0.6 + (i * 0.1),
+                        repeat: Infinity,
+                        ease: 'easeInOut',
+                        delay: i * 0.05
+                    };
                 } else if (isThinking) {
-                    animate = { height: [6, 12, 6] };
-                    transition = { duration: 1, repeat: Infinity, ease: 'easeInOut', delay: i * 0.15 };
+                    // Breathing slowly in unison
+                    animate = { height: [6, 16, 6], opacity: [0.5, 0.8, 0.5] };
+                    transition = { duration: 1.5, repeat: Infinity, ease: 'easeInOut' };
                 }
 
                 return (
@@ -40,8 +42,8 @@ function VoiceWaveform({ phase }) {
                         key={i}
                         animate={animate}
                         transition={transition}
-                        className="w-2 rounded-full bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.8)]"
-                        initial={{ height: 6 }}
+                        className="w-2 rounded-full bg-gradient-to-t from-[#3b82f6] to-[#06b6d4] shadow-[0_0_12px_rgba(59,130,246,0.5)]"
+                        initial={{ height: 4 }}
                     />
                 );
             })}
@@ -53,7 +55,7 @@ export default function ChatPage() {
     const { currentLanguage, t } = useLanguage();
     // We still keep messages in state for history/API context, but we don't render them.
     const [messages, setMessages] = useState([
-        { role: 'assistant', content: t('Hello! I am SehatSaathi. How can I assist you with your health today?') || 'Hello! I am SehatSaathi. How can I assist you with your health today?' }
+        { role: 'assistant', content: 'Hello! I am SehatSaathi. How can I assist you with your health today?' }
     ]);
     const [loading, setLoading] = useState(false);
     const audioRef = useRef(null);
@@ -91,7 +93,8 @@ export default function ChatPage() {
         try {
             const validHistory = messages.slice(1).map(m => ({ role: m.role, content: m.content }));
 
-            const { data } = await sendMessage({
+            // Route voice inputs to Groq for ultra-fast response
+            const { data } = await sendVoiceMessage({
                 message: text,
                 history: validHistory,
                 language: currentLanguage.code,
@@ -108,9 +111,9 @@ export default function ChatPage() {
         } catch (error) {
             const status = error?.response?.status;
             if (status === 429 || status === 403) {
-                toast.error(t('Health Doctor is busy. Please try again later.') || 'Health Doctor is busy. Please try again later.');
+                toast.error(t('chat.errorBusy'));
             } else {
-                toast.error(t('Connection lost. Please try again.') || 'Connection lost. Please try again.');
+                toast.error(t('chat.errorConnection'));
             }
         } finally {
             setLoading(false);
@@ -246,7 +249,7 @@ export default function ChatPage() {
                             }}
                         >
                             {sessionActive && phase !== 'idle' ? (
-                                <VoiceWaveform phase={phase} />
+                                <VoiceVisualizer phase={phase} />
                             ) : (
                                 <Mic size={48} className={sessionActive ? "text-cyan-500 drop-shadow-[0_0_12px_rgba(34,211,238,0.6)]" : "text-slate-400"} />
                             )}

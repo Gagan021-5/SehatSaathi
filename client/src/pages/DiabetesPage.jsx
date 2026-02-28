@@ -17,6 +17,7 @@ import {
     Bot
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 import { predictDiabetes, sendMessage, synthesizeSpeech } from '../services/api';
 import Card from '../components/common/Card';
 import PageTransition from '../components/common/PageTransition';
@@ -36,7 +37,8 @@ const itemVariants = {
 };
 
 export default function DiabetesPage() {
-    const { currentLanguage } = useLanguage();
+    const { currentLanguage, t } = useLanguage();
+    const { user } = useAuth();
     const [form, setForm] = useState({
         gender: '', age: 45, hypertension: 0, heart_disease: 0,
         smoking_history: '', bmi: '', HbA1c_level: '', blood_glucose_level: '',
@@ -128,7 +130,7 @@ export default function DiabetesPage() {
         if (sessionActive) stopSession();
 
         try {
-            const { data } = await predictDiabetes({ ...form, language: currentLanguage.code });
+            const { data } = await predictDiabetes({ ...form, language: currentLanguage.code, patientName: user?.name || '' });
             setResult(data);
             toast.success('Analysis completed.');
         } catch (error) {
@@ -193,10 +195,13 @@ export default function DiabetesPage() {
                     <Stethoscope size={32} />
                 </motion.div>
                 <h1 className="text-4xl font-bold tracking-tight text-zinc-900 sm:text-5xl">
-                    Diabetes <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-teal-500">Risk Intelligence</span>
+                    {t('diabetes.title').split(' ').slice(0, 1).join(' ')}{' '}
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-teal-500">
+                        {t('diabetes.title').split(' ').slice(1).join(' ')}
+                    </span>
                 </h1>
                 <p className="mt-4 text-zinc-500 max-w-xl mx-auto">
-                    Advanced clinical screening powered by Machine Learning and AI Guidance.
+                    {t('diabetes.subtitle')}
                 </p>
             </header>
 
@@ -207,7 +212,7 @@ export default function DiabetesPage() {
                         {/* Gender */}
                         <div className="space-y-2">
                             <label className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
-                                <Activity size={14} className="text-blue-500" /> Gender
+                                <Activity size={14} className="text-blue-500" /> {t('diabetes.fields.gender')}
                             </label>
                             <select
                                 className="w-full h-11 px-4 rounded-xl border-zinc-200 bg-white/50 focus:ring-2 focus:ring-blue-500 transition-all outline-none appearance-none"
@@ -215,15 +220,15 @@ export default function DiabetesPage() {
                                 onChange={(e) => setField('gender', e.target.value)}
                                 required
                             >
-                                <option value="">Select...</option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
+                                <option value="">{t('diabetes.options.selectGender')}</option>
+                                <option value="Male">{t('diabetes.options.male')}</option>
+                                <option value="Female">{t('diabetes.options.female')}</option>
                             </select>
                         </div>
 
                         {/* Age */}
                         <div className="space-y-2">
-                            <label className="text-sm font-semibold text-zinc-700">Age</label>
+                            <label className="text-sm font-semibold text-zinc-700">{t('diabetes.fields.age')}</label>
                             <input
                                 type="number"
                                 className="w-full h-11 px-4 rounded-xl border-zinc-200 bg-white/50 focus:ring-2 focus:ring-blue-500 outline-none"
@@ -235,7 +240,7 @@ export default function DiabetesPage() {
 
                         {/* BMI */}
                         <div className="space-y-2">
-                            <label className="text-sm font-semibold text-zinc-700">BMI (Body Mass Index)</label>
+                            <label className="text-sm font-semibold text-zinc-700">{t('diabetes.fields.bmi')}</label>
                             <input
                                 type="number" step="0.1" placeholder="24.5"
                                 className="w-full h-11 px-4 rounded-xl border-zinc-200 bg-white/50 focus:ring-2 focus:ring-blue-500 outline-none"
@@ -247,21 +252,21 @@ export default function DiabetesPage() {
 
                         {/* Smoking */}
                         <div className="space-y-2">
-                            <label className="text-sm font-semibold text-zinc-700">Smoking History</label>
+                            <label className="text-sm font-semibold text-zinc-700">{t('diabetes.fields.smokingHistory')}</label>
                             <select
                                 className="w-full h-11 px-4 rounded-xl border-zinc-200 bg-white/50 focus:ring-2 focus:ring-blue-500 outline-none"
                                 value={form.smoking_history}
                                 onChange={(e) => setField('smoking_history', e.target.value)}
                                 required
                             >
-                                <option value="">Select History</option>
+                                <option value="">{t('diabetes.options.selectGender').replace('Gender', 'History')}</option>
                                 {smokingOptions.map((v) => <option key={v} value={v}>{v}</option>)}
                             </select>
                         </div>
 
                         {/* HbA1c */}
                         <div className="space-y-2">
-                            <label className="text-sm font-semibold text-zinc-700">HbA1c Level (%)</label>
+                            <label className="text-sm font-semibold text-zinc-700">{t('diabetes.fields.hba1c')}</label>
                             <input
                                 type="number" step="0.1"
                                 className="w-full h-11 px-4 rounded-xl border-zinc-200 bg-white/50 focus:ring-2 focus:ring-blue-500 outline-none"
@@ -273,7 +278,7 @@ export default function DiabetesPage() {
 
                         {/* Glucose */}
                         <div className="space-y-2">
-                            <label className="text-sm font-semibold text-zinc-700">Blood Glucose (mg/dL)</label>
+                            <label className="text-sm font-semibold text-zinc-700">{t('diabetes.fields.bloodGlucose')}</label>
                             <input
                                 type="number"
                                 className="w-full h-11 px-4 rounded-xl border-zinc-200 bg-white/50 focus:ring-2 focus:ring-blue-500 outline-none"
@@ -285,11 +290,11 @@ export default function DiabetesPage() {
 
                         {/* Toggles */}
                         <div className="flex items-center justify-between p-4 rounded-xl bg-zinc-50 border border-zinc-100">
-                            <span className="text-sm font-medium text-zinc-700">Hypertension</span>
+                            <span className="text-sm font-medium text-zinc-700">{t('diabetes.fields.hypertension')}</span>
                             <ToggleButton active={form.hypertension} onClick={() => setField('hypertension', form.hypertension ? 0 : 1)} />
                         </div>
                         <div className="flex items-center justify-between p-4 rounded-xl bg-zinc-50 border border-zinc-100">
-                            <span className="text-sm font-medium text-zinc-700">Heart Disease</span>
+                            <span className="text-sm font-medium text-zinc-700">{t('diabetes.fields.heartDisease')}</span>
                             <ToggleButton active={form.heart_disease} onClick={() => setField('heart_disease', form.heart_disease ? 0 : 1)} />
                         </div>
                     </div>
@@ -302,7 +307,7 @@ export default function DiabetesPage() {
                         className="mt-8 w-full h-14 rounded-2xl bg-zinc-900 text-white font-bold shadow-xl shadow-zinc-500/20 disabled:opacity-50 flex items-center justify-center gap-3 transition-all"
                     >
                         {loading ? <Loader2 className="animate-spin" /> : <Activity size={20} />}
-                        {loading ? 'Processing Data...' : 'Generate Analysis Report'}
+                        {loading ? t('common.analyzing') : t('diabetes.submit')}
                     </motion.button>
                 </form>
             </Card>
@@ -359,7 +364,7 @@ export default function DiabetesPage() {
                                         <div className="h-8 w-8 rounded-lg bg-blue-50 text-blue-600 grid place-items-center">
                                             <Info size={18} />
                                         </div>
-                                        <h2 className="text-xl font-bold text-zinc-900">AI Medical Insights</h2>
+                                        <h2 className="text-xl font-bold text-zinc-900">{t('diabetes.aiMedicalInsights')}</h2>
                                     </div>
                                     <button
                                         onClick={toggleVoiceInsights}
@@ -369,7 +374,7 @@ export default function DiabetesPage() {
                                             }`}
                                     >
                                         {sessionActive ? <MicOff size={16} /> : <Volume2 size={16} />}
-                                        {sessionActive ? 'End Voice Session' : 'Listen & Discuss'}
+                                        {sessionActive ? t('diabetes.endVoiceSession') : t('diabetes.listenAndDiscuss')}
                                     </button>
                                 </div>
 
@@ -389,9 +394,9 @@ export default function DiabetesPage() {
                                                         <Bot size={20} className="text-blue-400" />
                                                     </div>
                                                     <div>
-                                                        <p className="text-sm font-bold">Clinical Voice Assistant</p>
+                                                        <p className="text-sm font-bold">{t('diabetes.clinicalVoiceAssistant')}</p>
                                                         <p className="text-xs text-blue-200/70">
-                                                            {voiceLoading ? 'Analyzing...' : isVoiceSpeaking ? 'Speaking...' : isListening ? 'Listening...' : 'Thinking...'}
+                                                            {voiceLoading ? t('diabetes.analyzing2') : isVoiceSpeaking ? t('chat.speaking') : isListening ? t('chat.listening') : t('chat.thinking')}
                                                         </p>
                                                     </div>
                                                 </div>

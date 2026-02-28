@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY );
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const modelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 const model = genAI.getGenerativeModel({ model: modelName });
 
@@ -32,16 +32,20 @@ async function genJSON(prompt) {
     }
 }
 
-export async function explainDiabetesRisk(mlResult, patientData, language = 'en') {
+export async function explainDiabetesRisk(mlResult, patientData, language = 'en', patientName = '') {
+    const nameClause = patientName
+        ? `The patient's name is ${patientName}. Address them warmly by their first name throughout the response.`
+        : '';
     const prompt = `${lang(language)}
 
-You are a caring doctor explaining diabetes risk assessment results.
+You are a caring, empathetic doctor explaining diabetes risk assessment results to your patient.
+${nameClause}
 Patient data: ${JSON.stringify(patientData)}
 ML Prediction: ${JSON.stringify(mlResult)}
 
 Return JSON with these exact keys:
 {
-  "summary": "2-3 sentence summary of the risk assessment",
+  "summary": "2-3 sentence summary of the risk assessment, addressing the patient by name if provided",
   "recommendations": ["list of 4-5 actionable health recommendations"],
   "diet_advice": { "eat": ["foods to eat"], "avoid": ["foods to avoid"] },
   "exercise": "exercise recommendation paragraph",
@@ -50,7 +54,7 @@ Return JSON with these exact keys:
   "lifestyle_changes": ["3-4 lifestyle changes"]
 }
 
-Use SIMPLE words. Be warm and reassuring. Never diagnose definitively.`;
+Use SIMPLE words. Be warm and reassuring. Never diagnose definitively. If the patient name is known, use it naturally.`;
     return await genJSON(prompt);
 }
 
