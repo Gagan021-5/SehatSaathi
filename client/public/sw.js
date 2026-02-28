@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sehat-saathi-v2';
+const CACHE_NAME = 'sehat-saathi-v3';
 const STATIC_ASSETS = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', (event) => {
@@ -33,6 +33,16 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
+    // Skip cross-origin API requests entirely (ML service, etc.) — let browser handle CORS
+    if (url.origin !== self.location.origin && !url.pathname.includes('/api/')) {
+        return;
+    }
+
+    const offline503 = () => new Response(
+        JSON.stringify({ error: 'Offline — no cached response available.' }),
+        { status: 503, headers: { 'Content-Type': 'application/json' } }
+    );
+
     if (request.url.includes('/api/')) {
         // Network-first for API calls
         event.respondWith(
@@ -45,22 +55,20 @@ self.addEventListener('fetch', (event) => {
                     }
                     return response;
                 })
-                .catch(() => caches.match(request))
+                .catch(() => caches.match(request).then(cached => cached || offline503()))
         );
     } else {
-        // Network-first for everything else (not cache-first!)
-        // Only fall back to cache when offline
+        // Network-first for static assets, fall back to cache then 503
         event.respondWith(
             fetch(request)
                 .then(response => {
-                    // Cache successful responses for offline use
                     if (response && response.ok && response.type === 'basic') {
                         const clone = response.clone();
                         caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
                     }
                     return response;
                 })
-                .catch(() => caches.match(request))
+                .catch(() => caches.match(request).then(cached => cached || offline503()))
         );
     }
 });
