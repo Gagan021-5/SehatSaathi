@@ -224,7 +224,7 @@ Python Flask ML Service (Port 5001)
 
 ## 🚀 Live Demo
 
-> **[▶ Open SehatSaathi Live App](https://sehat-9mfh.onrender.com)** *(Update once deployed to Render/Vercel)*
+> **[▶ Open SehatSaathi Live App](https://sehat-9mfh.onrender.com)**
 
 ### Login Credentials for Demo
 | Field | Value |
