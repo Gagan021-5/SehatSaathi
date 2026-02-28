@@ -31,7 +31,7 @@
 
 <br/>
 
-[🚀 Live Demo](#-live-demo) &nbsp;•&nbsp; [🎥 Demo Video](#-demo-video) &nbsp;•&nbsp; [🧠 AI Architecture](#-ai--ml-architecture) &nbsp;•&nbsp; [⚡ Quick Start](#-quick-start) &nbsp;•&nbsp; [📡 API Reference](#-api-reference)
+[🚀 Live Demo](https://sehat-9mfh.onrender.com) &nbsp;•&nbsp; [🎥 Demo Video](https://youtu.be/mdKu8jR5wUY) &nbsp;•&nbsp; [🧠 AI Architecture](#-ai--ml-architecture) &nbsp;•&nbsp; [⚡ Quick Start](#-quick-start) &nbsp;•&nbsp; [📡 API Reference](#-api-reference)
 
 </div>
 
