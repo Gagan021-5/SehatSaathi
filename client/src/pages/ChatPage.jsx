@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, RefreshCcw } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 import { sendMessage, sendVoiceMessage } from '../services/api';
 import { useVoiceLoop } from '../hooks/useVoiceLoop';
 import toast from 'react-hot-toast';
@@ -53,6 +54,7 @@ function VoiceVisualizer({ phase }) {
 
 export default function ChatPage() {
     const { currentLanguage, t } = useLanguage();
+    const { firebaseUser } = useAuth();
     // We still keep messages in state for history/API context, but we don't render them.
     const [messages, setMessages] = useState([
         { role: 'assistant', content: 'Hello! I am SehatSaathi. How can I assist you with your health today?' }
@@ -70,14 +72,17 @@ export default function ChatPage() {
         };
     }, []);
 
+    const handleSendRef = useRef(null);
+
     const {
         isListening, isSpeaking,
         sessionActive, voiceError,
         startSession, stopSession, resetSession, speakText,
+        notifySpeakingStarted, notifyListeningDone,
     } = useVoiceLoop({
         lang: currentLanguage.speechCode || 'en-IN',
         onSpeechResult: useCallback((transcript) => {
-            handleSend(transcript);
+            if (handleSendRef.current) handleSendRef.current(transcript);
         }, [])
     });
 
@@ -93,19 +98,24 @@ export default function ChatPage() {
         try {
             const validHistory = messages.slice(1).map(m => ({ role: m.role, content: m.content }));
 
-            // Route voice inputs to Groq for ultra-fast response
             const { data } = await sendVoiceMessage({
                 message: text,
                 history: validHistory,
                 language: currentLanguage.code,
+                userId: firebaseUser?.uid || null,
             });
 
             const replyText = data?.text || '';
             setMessages(prev => [...prev, { role: 'assistant', content: replyText }]);
 
             if (data?.audioBase64) {
+                // Signal mic to pause while AI speaks
+                notifySpeakingStarted();
                 await playAudio(data.audioBase64);
+                // After audio done → mic auto-restarts via notifyListeningDone()
+                notifyListeningDone();
             } else if (sessionActive) {
+                // Fallback: use browser TTS — speakText handles the loop internally
                 speakText(replyText);
             }
         } catch (error) {
@@ -115,38 +125,49 @@ export default function ChatPage() {
             } else {
                 toast.error(t('chat.errorConnection'));
             }
+            // Even on error, restore listening
+            if (sessionActive) notifyListeningDone();
         } finally {
             setLoading(false);
         }
     }
 
-    async function playAudio(base64) {
-        const wasActive = sessionActive;
-        if (wasActive) stopSession();
+    // Keep a stable ref so the onSpeechResult callback can always call the latest handleSend
+    handleSendRef.current = handleSend;
 
+    async function playAudio(base64) {
         if (audioRef.current) {
             audioRef.current.pause();
+            audioRef.current = null;
         }
 
-        const url = URL.createObjectURL(new Blob([Uint8Array.from(atob(base64), c => c.charCodeAt(0))], { type: 'audio/mpeg' }));
+        const url = URL.createObjectURL(
+            new Blob([Uint8Array.from(atob(base64), c => c.charCodeAt(0))], { type: 'audio/mpeg' })
+        );
         const audio = new Audio(url);
         audioRef.current = audio;
 
         try {
             await audio.play();
-            await new Promise(res => { audio.onended = res; });
+            await new Promise((res, rej) => {
+                audio.onended = res;
+                audio.onerror = rej;
+            });
         } catch (err) {
-            console.error('Audio playback failed', err);
+            console.error('[ChatPage] Audio playback failed:', err);
         } finally {
             URL.revokeObjectURL(url);
-            if (wasActive) setTimeout(() => startSession(), 250);
+            audioRef.current = null;
         }
     }
 
     function toggleOrb() {
         if (sessionActive) {
             stopSession();
-            if (audioRef.current) audioRef.current.pause();
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current = null;
+            }
         } else {
             startSession();
         }

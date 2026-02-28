@@ -92,7 +92,7 @@ export default function EmergencyPage() {
                 }
             }
         } catch {
-            toast.error(t('Unable to fetch emergency guidance right now.') || 'Unable to fetch emergency guidance right now.');
+            toast.error(t('emergency.disclaimer'));
         } finally {
             setLoading(false);
         }
@@ -182,10 +182,10 @@ export default function EmergencyPage() {
                                 </div>
                                 <div>
                                     <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-rose-950">
-                                        {t('Emergency SOS') || 'Emergency SOS'}
+                                        {t('emergency.title')}
                                     </h1>
                                     <p className="mt-1 text-sm font-medium text-rose-700/80">
-                                        {t('Immediate life-saving guidance. Call for help first.') || 'Immediate life-saving guidance. Call for help first.'}
+                                        {t('emergency.subtitle')}
                                     </p>
                                 </div>
                             </div>
@@ -195,7 +195,7 @@ export default function EmergencyPage() {
                                 className="group relative flex w-full md:w-auto items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-b from-rose-500 to-red-600 px-8 py-4 text-base font-bold text-white shadow-xl shadow-red-500/25 ring-1 ring-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-red-500/40 active:scale-95"
                             >
                                 <PhoneCall size={20} className="animate-pulse" />
-                                {t('CALL 112 NOW') || 'CALL 112 NOW'}
+                                {t('emergency.callNow')}
                                 <div className="absolute inset-0 rounded-2xl bg-white opacity-0 transition-opacity group-hover:opacity-10" />
                             </a>
                         </div>

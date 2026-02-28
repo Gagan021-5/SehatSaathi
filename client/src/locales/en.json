@@ -53,6 +53,40 @@
     "chooseLanguage": "Choose your preferred language",
     "hint": "Language can be changed anytime from the top navigation menu."
   },
+  "home": {
+    "greeting": "Good morning, {{name}}.",
+    "systemOperational": "System Operational",
+    "subtitle": "Your unified workspace for intelligent diagnostics and healthcare management.",
+    "newAssessment": "New Assessment",
+    "clinicalModules": "Clinical Modules",
+    "version": "v2.4.0-Stable",
+    "neuralNetworkStatus": "Neural Network Status",
+    "neuralNetworkSubtitle": "Live accuracy and dataset metrics from our ML microservices.",
+    "accuracy": "Accuracy",
+    "dataset": "Dataset",
+    "quickActions": {
+      "diabetesScreening": "Diabetes Screening",
+      "diabetesScreeningSubtitle": "ML-driven risk analysis",
+      "aiClinicalAssistant": "AI Clinical Assistant",
+      "aiClinicalAssistantSubtitle": "Real-time medical guidance",
+      "smartScan": "Smart Scan",
+      "smartScanSubtitle": "Digitize medical prescriptions",
+      "emergencyProtocol": "Emergency Protocol",
+      "emergencyProtocolSubtitle": "Critical first-aid procedures",
+      "pharmacyManager": "Pharmacy Manager",
+      "pharmacyManagerSubtitle": "Inventory & dosage tracking",
+      "secureVault": "Secure Vault",
+      "secureVaultSubtitle": "Centralized family records"
+    },
+    "trust": {
+      "encryptedVault": "Encrypted Vault",
+      "encryptedVaultDesc": "AES-256 standards for all medical record storage.",
+      "realTimeSync": "Real-time Sync",
+      "realTimeSyncDesc": "Instant updates across all authenticated devices.",
+      "expertVerified": "Expert Verified",
+      "expertVerifiedDesc": "AI models trained on peer-reviewed clinical data."
+    }
+  },
   "common": {
     "save": "Save",
     "cancel": "Cancel",
@@ -81,40 +115,6 @@
     "analyzing": "Analyzing...",
     "processing": "Processing...",
     "success": "Success"
-  },
-  "home": {
-    "greeting": "Good morning, {{name}}.",
-    "subtitle": "Your unified workspace for intelligent diagnostics and healthcare management.",
-    "newAssessment": "New Assessment",
-    "clinicalModules": "Clinical Modules",
-    "version": "v2.4.0-Stable",
-    "neuralNetworkStatus": "Neural Network Status",
-    "neuralNetworkSubtitle": "Live accuracy and dataset metrics from our ML microservices.",
-    "accuracy": "Accuracy",
-    "dataset": "Dataset",
-    "systemOperational": "System Operational",
-    "trust": {
-      "encryptedVault": "Encrypted Vault",
-      "encryptedVaultDesc": "AES-256 standards for all medical record storage.",
-      "realTimeSync": "Real-time Sync",
-      "realTimeSyncDesc": "Instant updates across all authenticated devices.",
-      "expertVerified": "Expert Verified",
-      "expertVerifiedDesc": "AI models trained on peer-reviewed clinical data."
-    },
-    "quickActions": {
-      "diabetesScreening": "Diabetes Screening",
-      "diabetesScreeningSubtitle": "ML-driven risk analysis",
-      "aiClinicalAssistant": "AI Clinical Assistant",
-      "aiClinicalAssistantSubtitle": "Real-time medical guidance",
-      "smartScan": "Smart Scan",
-      "smartScanSubtitle": "Digitize medical prescriptions",
-      "emergencyProtocol": "Emergency Protocol",
-      "emergencyProtocolSubtitle": "Critical first-aid procedures",
-      "pharmacyManager": "Pharmacy Manager",
-      "pharmacyManagerSubtitle": "Inventory & dosage tracking",
-      "secureVault": "Secure Vault",
-      "secureVaultSubtitle": "Centralized family records"
-    }
   },
   "chat": {
     "voiceTitle": "SehatSaathi Voice",
@@ -294,6 +294,11 @@
     "subtitle": "Track your health metrics over time",
     "addVital": "Log Vitals",
     "noVitals": "No vitals recorded yet.",
+    "vitalSaved": "Vital reading synchronized.",
+    "vitalError": "Failed to save reading. Try again.",
+    "noVitalsFirst": "Add vitals first to generate insights.",
+    "aiAnalysisComplete": "AI Health Analysis Complete",
+    "aiAnalysisError": "Unable to perform AI analysis.",
     "fields": {
       "bloodPressure": "Blood Pressure",
       "heartRate": "Heart Rate",

@@ -1,251 +1,250 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import toast from 'react-hot-toast';
 
+/**
+ * useVoiceLoop — Siri-style continuous voice assistant hook.
+ *
+ * Flow:
+ *  [idle] → startSession() → [listening] → speech detected → [thinking (external)]
+ *      → notifyListeningDone() called from ChatPage after audio plays → [listening again]
+ *
+ * Key design decisions:
+ * - Recognition is DESTROYED and RE-CREATED on each listen cycle (avoids "already started" errors)
+ * - isSpeakingRef prevents mic from activating while AI audio plays
+ * - notifyListeningDone() is a stable callback ChatPage calls after ElevenLabs audio finishes
+ */
 export function useVoiceLoop({ lang = 'en-US', onSpeechResult }) {
     const [isListening, setIsListening] = useState(false);
     const [isSpeakingState, setIsSpeakingState] = useState(false);
+    const [sessionActive, setSessionActive] = useState(false);
     const [voiceError, setVoiceError] = useState(false);
 
-    const recognitionRef = useRef(null);
     const sessionActiveRef = useRef(false);
     const isSpeakingRef = useRef(false);
-    const silenceTimeoutRef = useRef(null);
+    const transcriptRef = useRef('');
+    const debounceRef = useRef(null);
+    const recognitionRef = useRef(null);
     const onSpeechResultRef = useRef(onSpeechResult);
+    const langRef = useRef(lang);
 
-    // Keep the callback ref always up-to-date without re-running effects
-    useEffect(() => {
-        onSpeechResultRef.current = onSpeechResult;
-    }, [onSpeechResult]);
+    // Keep refs always in sync
+    useEffect(() => { onSpeechResultRef.current = onSpeechResult; }, [onSpeechResult]);
+    useEffect(() => { langRef.current = lang; }, [lang]);
+
+    // ---------- helpers ----------
 
     const setIsSpeaking = useCallback((val) => {
         isSpeakingRef.current = val;
         setIsSpeakingState(val);
     }, []);
 
-    const playPing = () => {
-        try {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(440, ctx.currentTime);
-            gain.gain.setValueAtTime(0.1, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
-            osc.start();
-            osc.stop(ctx.currentTime + 0.5);
-        } catch (e) { /* ignore */ }
-    };
-
-    const clearSilenceTimer = () => {
-        if (silenceTimeoutRef.current) {
-            clearTimeout(silenceTimeoutRef.current);
-            silenceTimeoutRef.current = null;
+    const clearDebounce = () => {
+        if (debounceRef.current) {
+            clearTimeout(debounceRef.current);
+            debounceRef.current = null;
         }
     };
 
-    const transcriptRef = useRef('');
-
-    // Initialize Speech Recognition
-    useEffect(() => {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) return;
-
-        const recognizer = new SpeechRecognition();
-        recognizer.lang = lang;
-        recognizer.interimResults = true;
-        recognizer.maxAlternatives = 1;
-
-        recognizer.onstart = () => {
-            setIsListening(true);
-            // Only reset transcript when starting fresh — NOT when restarting mid-deounce
-            clearSilenceTimer();
-            silenceTimeoutRef.current = setTimeout(() => {
-                playPing();
-                toast('Voice session paused. Still there?', { icon: '💤' });
-                if (recognitionRef.current) recognitionRef.current.stop();
-                sessionActiveRef.current = false;
-                setIsListening(false);
-            }, 10000);
-        };
-
-        recognizer.onresult = (event) => {
-            clearSilenceTimer();
-
-            let currentFinal = '';
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-                if (event.results[i].isFinal) {
-                    currentFinal += event.results[i][0].transcript;
-                }
-            }
-
-            if (currentFinal) {
-                transcriptRef.current += ' ' + currentFinal;
-            }
-
-            const completeTranscript = transcriptRef.current.trim();
-
-            if (completeTranscript.length > 2 && sessionActiveRef.current && !isSpeakingRef.current) {
-                // 1000ms Silence Debounce for Demo Stability
-                silenceTimeoutRef.current = setTimeout(() => {
-                    if (sessionActiveRef.current && !isSpeakingRef.current) {
-                        const final = transcriptRef.current.trim();
-                        transcriptRef.current = ''; // Reset for next turn
-
-                        setIsListening(false);
-                        // Step 2 & 3: Immediately stop listener and trigger result (showing Thinking)
-                        if (recognitionRef.current) recognitionRef.current.stop();
-                        if (onSpeechResultRef.current) onSpeechResultRef.current(final);
-                    }
-                }, 1000);
-            }
-        };
-
-        recognizer.onerror = (event) => {
-            clearSilenceTimer();
-            if (event.error === 'not-allowed') {
-                toast.error('Microphone access denied.');
-                setVoiceError(true);
-                sessionActiveRef.current = false;
-                setIsListening(false);
-                setIsSpeaking(false);
-                if (recognitionRef.current) recognitionRef.current.stop();
-            }
-            if (event.error === 'no-speech' && sessionActiveRef.current && !isSpeakingRef.current) {
-                // Restart listening if no speech was detected and session is active
-                try {
-                    recognizer.start();
-                } catch (e) {
-                    // Ignore already started errors
-                }
-            } else {
-                setIsListening(false);
-            }
-        };
-
-        recognizer.onend = () => {
-            setIsListening(false);
-            // IMPORTANT: Do NOT clear the silence timer here!
-            // If there's a pending transcript in the debounce, killing the timer
-            // means the user's speech will never get sent to the AI.
-            // Only restart listening if there is NO pending transcript waiting to fire.
-            const hasPendingTranscript = transcriptRef.current.trim().length > 0;
-            if (sessionActiveRef.current && !isSpeakingRef.current && !hasPendingTranscript) {
-                try {
-                    transcriptRef.current = ''; // Safe to reset only when truly starting fresh
-                    recognizer.start();
-                } catch (e) {
-                    // Ignore already started errors
-                }
-            }
-        };
-
-        recognitionRef.current = recognizer;
-
-        return () => {
-            clearSilenceTimer();
-            if (recognitionRef.current) {
-                recognitionRef.current.onend = null;
-                recognitionRef.current.stop();
-            }
-        };
-    }, [lang]); // Only depend on lang — onSpeechResult is accessed via stable ref
-
-    // Separate unmount cleanup for speech synthesis
-    useEffect(() => {
-        return () => {
-            window.speechSynthesis.cancel();
-        };
+    const destroyRecognizer = useCallback(() => {
+        if (recognitionRef.current) {
+            try { recognitionRef.current.onend = null; } catch (_) { }
+            try { recognitionRef.current.onresult = null; } catch (_) { }
+            try { recognitionRef.current.onerror = null; } catch (_) { }
+            try { recognitionRef.current.onstart = null; } catch (_) { }
+            try { recognitionRef.current.stop(); } catch (_) { }
+            recognitionRef.current = null;
+        }
     }, []);
 
-    const startSession = useCallback(() => {
-        setVoiceError(false);
-        if (!recognitionRef.current) {
+    // ---------- core: create + start a fresh recognizer ----------
+
+    const startListening = useCallback(() => {
+        if (!sessionActiveRef.current) return;
+        if (isSpeakingRef.current) return;
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
             toast.error('Speech recognition not supported in this browser.');
             setVoiceError(true);
             return;
         }
 
-        sessionActiveRef.current = true;
-        window.speechSynthesis.cancel();
-        setIsSpeaking(false);
-        try {
-            recognitionRef.current.start();
-        } catch (e) {
-            // Might already be started
-        }
-    }, []);
+        // Always destroy old one before creating new — avoids "already started" errors
+        destroyRecognizer();
 
-    const stopSession = useCallback(() => {
-        clearSilenceTimer();
-        sessionActiveRef.current = false;
-        if (recognitionRef.current) {
-            recognitionRef.current.stop();
-        }
-        window.speechSynthesis.cancel();
-        setIsListening(false);
-        setIsSpeaking(false);
-    }, []);
+        transcriptRef.current = '';
+        clearDebounce();
 
-    const speakText = useCallback((text) => {
-        if (!text) return;
-        clearSilenceTimer();
+        const recognizer = new SpeechRecognition();
+        recognizer.lang = langRef.current;
+        recognizer.interimResults = true;
+        recognizer.continuous = false; // let it end naturally, we restart it
+        recognizer.maxAlternatives = 1;
+        recognitionRef.current = recognizer;
 
-        // Stop listening while speaking
-        if (recognitionRef.current) {
-            recognitionRef.current.stop();
-        }
-
-        setIsListening(false);
-        setIsSpeaking(true);
-
-        window.speechSynthesis.cancel(); // Cancel any ongoing speech
-
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = lang;
-
-        utterance.onend = () => {
-            setIsSpeaking(false);
-            if (sessionActiveRef.current) {
-                // Resume listening after speaking is done
-                setTimeout(() => {
-                    try {
-                        if (sessionActiveRef.current) recognitionRef.current.start();
-                    } catch (e) {
-                        // ignore
-                    }
-                }, 300); // slight delay to prevent overlapping audio issues
-            }
+        recognizer.onstart = () => {
+            setIsListening(true);
         };
 
-        utterance.onerror = () => {
-            setIsSpeaking(false);
-            if (sessionActiveRef.current) {
-                try {
-                    recognitionRef.current.start();
-                } catch (e) {
-                    // ignore
+        recognizer.onresult = (event) => {
+            let finalText = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                if (event.results[i].isFinal) {
+                    finalText += event.results[i][0].transcript;
                 }
             }
+
+            if (finalText) {
+                transcriptRef.current += ' ' + finalText;
+            }
+
+            const accumulated = transcriptRef.current.trim();
+            if (accumulated.length > 2 && sessionActiveRef.current && !isSpeakingRef.current) {
+                clearDebounce();
+                debounceRef.current = setTimeout(() => {
+                    if (!sessionActiveRef.current || isSpeakingRef.current) return;
+                    const finalTranscript = transcriptRef.current.trim();
+                    transcriptRef.current = '';
+                    clearDebounce();
+                    setIsListening(false);
+                    // Stop recognizer before handing off (prevents "onend" restart race)
+                    destroyRecognizer();
+                    if (onSpeechResultRef.current) onSpeechResultRef.current(finalTranscript);
+                }, 1000);
+            }
         };
 
+        recognizer.onerror = (event) => {
+            clearDebounce();
+            if (event.error === 'not-allowed') {
+                toast.error('Microphone access denied. Please allow mic access and try again.');
+                setVoiceError(true);
+                sessionActiveRef.current = false;
+                setSessionActive(false);
+                setIsListening(false);
+                setIsSpeaking(false);
+                destroyRecognizer();
+                return;
+            }
+            if (event.error === 'aborted') return; // triggered by our own stop() — ignore
+            if (event.error === 'no-speech') {
+                // Natural timeout — restart listening if session still active
+                setIsListening(false);
+                if (sessionActiveRef.current && !isSpeakingRef.current) {
+                    setTimeout(() => startListening(), 250);
+                }
+                return;
+            }
+            // Other error (network, etc.) — just restart
+            setIsListening(false);
+            if (sessionActiveRef.current && !isSpeakingRef.current) {
+                setTimeout(() => startListening(), 500);
+            }
+        };
+
+        recognizer.onend = () => {
+            setIsListening(false);
+            // Only auto-restart if: session still active + not speaking + no pending debounce transcript
+            if (sessionActiveRef.current && !isSpeakingRef.current && !debounceRef.current && transcriptRef.current.trim().length === 0) {
+                setTimeout(() => startListening(), 250);
+            }
+        };
+
+        try {
+            recognizer.start();
+        } catch (e) {
+            console.warn('[VoiceLoop] recognizer.start() threw:', e.message);
+            setIsListening(false);
+            if (sessionActiveRef.current) setTimeout(() => startListening(), 500);
+        }
+    }, [destroyRecognizer, setIsSpeaking]);
+
+    // ---------- public API ----------
+
+    const startSession = useCallback(() => {
+        setVoiceError(false);
+        if (sessionActiveRef.current) {
+            // Already active — restart listening (toggle behaviour)
+            startListening();
+            return;
+        }
+        sessionActiveRef.current = true;
+        setSessionActive(true);
+        window.speechSynthesis.cancel();
+        setIsSpeaking(false);
+        startListening();
+    }, [startListening, setIsSpeaking]);
+
+    const stopSession = useCallback(() => {
+        clearDebounce();
+        sessionActiveRef.current = false;
+        setSessionActive(false);
+        destroyRecognizer();
+        window.speechSynthesis.cancel();
+        setIsListening(false);
+        setIsSpeaking(false);
+        transcriptRef.current = '';
+    }, [destroyRecognizer, setIsSpeaking]);
+
+    /**
+     * Called by ChatPage AFTER AI audio (ElevenLabs or SpeechSynthesis) finishes playing.
+     * This is the key to the Siri-style loop: audio done → mic auto-restarts.
+     */
+    const notifyListeningDone = useCallback(() => {
+        setIsSpeaking(false);
+        if (sessionActiveRef.current) {
+            setTimeout(() => startListening(), 400);
+        }
+    }, [startListening, setIsSpeaking]);
+
+    /**
+     * Signals that AI has started speaking — prevents mic from picking up AI's own voice.
+     */
+    const notifySpeakingStarted = useCallback(() => {
+        setIsSpeaking(true);
+        // Stop mic while AI speaks
+        clearDebounce();
+        destroyRecognizer();
+        transcriptRef.current = '';
+        setIsListening(false);
+    }, [destroyRecognizer, setIsSpeaking]);
+
+    // Fallback: speakText via SpeechSynthesis (used when no ElevenLabs audio available)
+    const speakText = useCallback((text) => {
+        if (!text || !sessionActiveRef.current) return;
+        notifySpeakingStarted();
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = langRef.current;
+        utterance.onend = () => notifyListeningDone();
+        utterance.onerror = () => notifyListeningDone();
         window.speechSynthesis.speak(utterance);
-    }, [lang]);
+    }, [notifySpeakingStarted, notifyListeningDone]);
 
     const resetSession = useCallback(() => {
         stopSession();
         setVoiceError(false);
     }, [stopSession]);
 
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            clearDebounce();
+            destroyRecognizer();
+            window.speechSynthesis.cancel();
+        };
+    }, [destroyRecognizer]);
+
     return {
         isListening,
         isSpeaking: isSpeakingState,
-        sessionActive: sessionActiveRef.current,
+        sessionActive,
         voiceError,
         startSession,
         stopSession,
         resetSession,
-        speakText
+        speakText,
+        notifySpeakingStarted,
+        notifyListeningDone,
     };
 }

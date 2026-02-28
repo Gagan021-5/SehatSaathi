@@ -185,11 +185,11 @@ export default function HealthRecordsPage() {
             }]);
             setAddValue('');
             setShowAdd(false);
-            toast.success(t('Vital reading synchronized.') || 'Vital reading synchronized.');
+            toast.success(t('health.vitalSaved'));
             // Still fetch to ensure server state is exactly matched
             fetchRecords();
         } catch {
-            toast.error(t('Failed to save reading.') || 'Failed to save reading.');
+            toast.error(t('health.vitalError'));
         } finally {
             setSaving(false);
         }
@@ -197,7 +197,7 @@ export default function HealthRecordsPage() {
 
     async function handleAnalyze() {
         if (records.length === 0) {
-            toast.error(t('Add vitals first to generate insights.') || 'Add vitals first to generate insights.');
+            toast.error(t('health.noVitalsFirst'));
             return;
         }
 
@@ -207,9 +207,9 @@ export default function HealthRecordsPage() {
         try {
             const { data } = await analyzeHealth(currentLanguage.code);
             setAnalysis(data);
-            toast.success(t('AI Health Analysis Complete') || 'AI Health Analysis Complete');
+            toast.success(t('health.aiAnalysisComplete'));
         } catch {
-            toast.error(t('Unable to perform AI analysis.') || 'Unable to perform AI analysis.');
+            toast.error(t('health.aiAnalysisError'));
         } finally {
             setAnalyzing(false);
         }
@@ -254,9 +254,9 @@ export default function HealthRecordsPage() {
                         />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-zinc-900">{t('Vitals & Trends') || 'Vitals & Trends'}</h1>
+                        <h1 className="text-3xl font-bold tracking-tight text-zinc-900">{t('health.title')}</h1>
                         <p className="font-medium text-zinc-500">
-                            {t('Monitoring your biometric health data in real-time.') || 'Monitoring your biometric health data in real-time.'}
+                            {t('health.subtitle')}
                         </p>
                     </div>
                 </motion.div>
@@ -266,14 +266,14 @@ export default function HealthRecordsPage() {
                         onClick={() => setShowAdd(true)}
                         className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-zinc-900 px-5 py-3 text-sm font-bold text-white shadow-xl shadow-zinc-900/20 transition-all hover:-translate-y-1 hover:bg-zinc-800 active:scale-95 md:flex-none"
                     >
-                        <Plus size={18} /> {t('Add Reading') || 'Add Reading'}
+                        <Plus size={18} /> {t('health.addVital')}
                     </button>
                     <button
                         onClick={handleAnalyze}
                         disabled={analyzing || records.length === 0}
                         className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-blue-100 bg-white px-5 py-3 text-sm font-bold text-blue-600 shadow-xl shadow-blue-500/5 transition-all hover:-translate-y-1 hover:bg-blue-50 active:scale-95 disabled:opacity-50 md:flex-none"
                     >
-                        {analyzing ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />} {t('AI Insight') || 'AI Insight'}
+                        {analyzing ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />} {t('health.aiAnalysis')}
                     </button>
                 </motion.div>
             </motion.div>
@@ -294,12 +294,12 @@ export default function HealthRecordsPage() {
                                 <X size={20} className="text-zinc-400" />
                             </button>
 
-                            <h2 className="mb-6 text-xl font-bold text-zinc-900">{t('Log New Reading') || 'Log New Reading'}</h2>
+                            <h2 className="mb-6 text-xl font-bold text-zinc-900">{t('health.addVital')}</h2>
 
                             <div className="space-y-5">
                                 <div className="space-y-2">
                                     <label className="px-1 text-xs font-bold uppercase tracking-wider text-zinc-400">
-                                        {t('Vital Category') || 'Vital Category'}
+                                        {t('health.fields.bloodPressure').replace('Blood Pressure', 'Vital Category')}
                                     </label>
                                     <select
                                         value={addType}
@@ -340,7 +340,7 @@ export default function HealthRecordsPage() {
                                     {saving ? (
                                         <Loader2 size={20} className="mx-auto animate-spin" />
                                     ) : (
-                                        t('Synchronize Record') || 'Synchronize Record'
+                                        t('common.save')
                                     )}
                                 </button>
                             </div>

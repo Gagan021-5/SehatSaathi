@@ -1,9 +1,9 @@
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { AnimatePresence, motion } from 'framer-motion';
-import { 
-    AlertCircle, ChevronLeft, ChevronRight, FileText, Loader2, Pill, 
-    UploadCloud, Volume2, X, Sparkles, ShieldCheck, Utensils, Zap, ScanText, Activity 
+import {
+    AlertCircle, ChevronLeft, ChevronRight, FileText, Loader2, Pill,
+    UploadCloud, Volume2, X, Sparkles, ShieldCheck, Utensils, Zap, ScanText, Activity
 } from 'lucide-react';
 import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
@@ -89,7 +89,7 @@ const itemVariants = {
 };
 
 export default function PrescriptionPage() {
-    const { currentLanguage } = useLanguage();
+    const { currentLanguage, t } = useLanguage();
     const [file, setFile] = useState(null);
     const [fileType, setFileType] = useState('');
     const [preview, setPreview] = useState(null);
@@ -379,7 +379,7 @@ export default function PrescriptionPage() {
 
     return (
         <PageTransition className="mx-auto max-w-[1400px] space-y-8 pb-12 px-2">
-            
+
             {/* Premium Header */}
             <header className="relative overflow-hidden rounded-[2.5rem] bg-slate-900 px-8 py-10 text-white shadow-2xl shadow-slate-900/20">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(168,85,247,0.25),transparent_60%)]" />
@@ -389,17 +389,20 @@ export default function PrescriptionPage() {
                             <ScanText size={14} /> AI Vision Processing
                         </div>
                         <h1 className="text-4xl font-black text-white tracking-tight lg:text-5xl">
-                            Prescription <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Scanner</span>
+                            {t('prescription.title').split(' ').slice(0, 1).join(' ')}{' '}
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+                                {t('prescription.title').split(' ').slice(1).join(' ')}
+                            </span>
                         </h1>
                         <p className="mt-3 text-slate-400 text-lg">
-                            Instantly extract medications, verify dosages, and detect potential drug interactions from any clinical document.
+                            {t('prescription.subtitle')}
                         </p>
                     </div>
                 </div>
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                
+
                 {/* Left Column: Upload & Preview Area */}
                 <div className="lg:col-span-5 space-y-6">
                     <div className="rounded-[2.5rem] bg-white p-6 md:p-8 shadow-xl shadow-slate-200/40 border border-slate-100">
@@ -408,8 +411,8 @@ export default function PrescriptionPage() {
                                 <UploadCloud size={24} />
                             </div>
                             <div>
-                                <h2 className="text-xl font-bold tracking-tight text-slate-900">Document Input</h2>
-                                <p className="text-xs font-medium text-slate-500">Upload physical or digital records</p>
+                                <h2 className="text-xl font-bold tracking-tight text-slate-900">{t('prescription.upload')}</h2>
+                                <p className="text-xs font-medium text-slate-500">{t('prescription.dragDrop')}</p>
                             </div>
                         </div>
 
@@ -423,17 +426,16 @@ export default function PrescriptionPage() {
                                     onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
                                     onDragLeave={() => setDragActive(false)}
                                     onDrop={(e) => { e.preventDefault(); setDragActive(false); handleFile(e.dataTransfer.files?.[0]); }}
-                                    className={`relative w-full overflow-hidden rounded-[2rem] border-2 border-dashed p-12 text-center transition-all duration-300 ease-out hover:scale-[1.02] ${
-                                        dragActive ? 'border-purple-500 bg-purple-50' : 'border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-purple-300'
-                                    }`}
+                                    className={`relative w-full overflow-hidden rounded-[2rem] border-2 border-dashed p-12 text-center transition-all duration-300 ease-out hover:scale-[1.02] ${dragActive ? 'border-purple-500 bg-purple-50' : 'border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-purple-300'
+                                        }`}
                                 >
                                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03]"></div>
                                     <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 transition-colors ${dragActive ? 'bg-purple-100 text-purple-600' : 'bg-white text-slate-400 shadow-sm'}`}>
                                         <FileText size={28} />
                                     </div>
-                                    <h4 className="text-base font-bold text-slate-800">Drop prescription here</h4>
-                                    <p className="mt-2 text-sm text-slate-500">or click to browse your device</p>
-                                    <p className="mt-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">PDF, JPG, PNG supported</p>
+                                    <h4 className="text-base font-bold text-slate-800">{t('prescription.dragDrop')}</h4>
+                                    <p className="mt-2 text-sm text-slate-500">{t('common.upload')}</p>
+                                    <p className="mt-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">{t('prescription.supportedFormats')}</p>
                                 </motion.button>
                             ) : (
                                 <motion.div
@@ -497,7 +499,7 @@ export default function PrescriptionPage() {
                         >
                             <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                             {loading ? <Loader2 size={20} className="animate-spin text-purple-400" /> : <Sparkles size={18} className="text-purple-400" />}
-                            <span className="relative z-10">{loadingLabel || 'Run Clinical Analysis'}</span>
+                            <span className="relative z-10">{loadingLabel || t('prescription.analyze')}</span>
                         </button>
                         <canvas ref={hiddenCanvasRef} className="hidden" />
                     </div>
@@ -510,14 +512,14 @@ export default function PrescriptionPage() {
                             <div className="h-20 w-20 rounded-full bg-slate-100 flex items-center justify-center mb-6 text-slate-300 shadow-inner">
                                 <Activity size={32} />
                             </div>
-                            <h3 className="text-xl font-bold text-slate-800 tracking-tight">Awaiting Document</h3>
+                            <h3 className="text-xl font-bold text-slate-800 tracking-tight">{t('prescription.upload')}</h3>
                             <p className="mt-2 text-sm text-slate-500 max-w-sm">
-                                Upload a prescription to instantly extract medications, verify safety, and receive structured dietary advice.
+                                {t('prescription.subtitle')}
                             </p>
                         </div>
                     ) : (
                         <motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-6">
-                            
+
                             {/* Summary Card */}
                             <motion.div variants={itemVariants} className="rounded-[2rem] bg-white p-6 md:p-8 shadow-xl shadow-slate-200/40 border border-slate-100">
                                 <div className="flex items-start gap-4">

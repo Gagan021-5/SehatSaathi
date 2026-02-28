@@ -53,6 +53,40 @@
     "chooseLanguage": "अपनी पसंदीदा भाषा चुनें",
     "hint": "ऊपर नेविगेशन मेन्यू से भाषा कभी भी बदली जा सकती है।"
   },
+  "home": {
+    "greeting": "सुप्रभात, {{name}}।",
+    "systemOperational": "सिस्टम सक्रिय",
+    "subtitle": "बुद्धिमान निदान और स्वास्थ्य प्रबंधन के लिए आपका केंद्रीकृत कार्यक्षेत्र।",
+    "newAssessment": "नई जांच",
+    "clinicalModules": "क्लिनिकल मॉड्यूल",
+    "version": "v2.4.0-स्थिर",
+    "neuralNetworkStatus": "न्यूरल नेटवर्क स्थिति",
+    "neuralNetworkSubtitle": "हमारी ML माइक्रोसर्विसेज़ से लाइव सटीकता और डेटासेट मेट्रिक्स।",
+    "accuracy": "सटीकता",
+    "dataset": "डेटासेट",
+    "quickActions": {
+      "diabetesScreening": "मधुमेह जांच",
+      "diabetesScreeningSubtitle": "ML-आधारित जोखिम विश्लेषण",
+      "aiClinicalAssistant": "AI क्लिनिकल सहायक",
+      "aiClinicalAssistantSubtitle": "रीयल-टाइम चिकित्सा मार्गदर्शन",
+      "smartScan": "स्मार्ट स्कैन",
+      "smartScanSubtitle": "चिकित्सा पर्चे डिजिटाइज़ करें",
+      "emergencyProtocol": "आपातकालीन प्रोटोकॉल",
+      "emergencyProtocolSubtitle": "महत्वपूर्ण प्राथमिक चिकित्सा प्रक्रियाएं",
+      "pharmacyManager": "फार्मेसी प्रबंधक",
+      "pharmacyManagerSubtitle": "इन्वेंट्री और खुराक ट्रैकिंग",
+      "secureVault": "सुरक्षित वॉल्ट",
+      "secureVaultSubtitle": "केंद्रीकृत परिवार रिकॉर्ड"
+    },
+    "trust": {
+      "encryptedVault": "एन्क्रिप्टेड वॉल्ट",
+      "encryptedVaultDesc": "सभी मेडिकल रिकॉर्ड स्टोरेज के लिए AES-256 मानक।",
+      "realTimeSync": "रीयल-टाइम सिंक",
+      "realTimeSyncDesc": "सभी प्रमाणित डिवाइस पर तत्काल अपडेट।",
+      "expertVerified": "विशेषज्ञ द्वारा सत्यापित",
+      "expertVerifiedDesc": "सहकर्मी-समीक्षित क्लिनिकल डेटा पर AI मॉडल प्रशिक्षित।"
+    }
+  },
   "common": {
     "save": "सेव",
     "cancel": "रद्द करें",
@@ -81,40 +115,6 @@
     "analyzing": "विश्लेषण हो रहा है...",
     "processing": "प्रोसेस हो रहा है...",
     "success": "सफल"
-  },
-  "home": {
-    "greeting": "सुप्रभात, {{name}}।",
-    "subtitle": "बुद्धिमान निदान और स्वास्थ्य प्रबंधन के लिए आपका एकीकृत कार्यक्षेत्र।",
-    "newAssessment": "नया मूल्यांकन",
-    "clinicalModules": "क्लिनिकल मॉड्यूल्स",
-    "version": "v2.4.0-स्थिर",
-    "neuralNetworkStatus": "न्यूरल नेटवर्क स्थिति",
-    "neuralNetworkSubtitle": "हमारे ML माइक्रोसर्विसेज़ से लाइव सटीकता और डेटासेट मेट्रिक्स।",
-    "accuracy": "सटीकता",
-    "dataset": "डेटासेट",
-    "systemOperational": "सिस्टम चालू है",
-    "trust": {
-      "encryptedVault": "एन्क्रिप्टेड वॉल्ट",
-      "encryptedVaultDesc": "सभी मेडिकल रिकॉर्ड स्टोरेज के लिए AES-256 मानक।",
-      "realTimeSync": "रियल-टाइम सिंक",
-      "realTimeSyncDesc": "सभी प्रमाणित डिवाइसों पर तुरंत अपडेट।",
-      "expertVerified": "विशेषज्ञ-सत्यापित",
-      "expertVerifiedDesc": "पीयर-रिव्यू क्लिनिकल डेटा पर प्रशिक्षित AI मॉडल।"
-    },
-    "quickActions": {
-      "diabetesScreening": "डायबिटीज स्क्रीनिंग",
-      "diabetesScreeningSubtitle": "ML-आधारित जोखिम विश्लेषण",
-      "aiClinicalAssistant": "AI क्लिनिकल सहायक",
-      "aiClinicalAssistantSubtitle": "रियल-टाइम चिकित्सा मार्गदर्शन",
-      "smartScan": "स्मार्ट स्कैन",
-      "smartScanSubtitle": "मेडिकल प्रिस्क्रिप्शन डिजिटाइज़ करें",
-      "emergencyProtocol": "इमरजेंसी प्रोटोकॉल",
-      "emergencyProtocolSubtitle": "महत्वपूर्ण प्राथमिक उपचार प्रक्रियाएं",
-      "pharmacyManager": "फार्मेसी मैनेजर",
-      "pharmacyManagerSubtitle": "इन्वेंट्री और खुराक ट्रैकिंग",
-      "secureVault": "सिक्योर वॉल्ट",
-      "secureVaultSubtitle": "केंद्रीकृत परिवार के रिकॉर्ड"
-    }
   },
   "chat": {
     "voiceTitle": "सेहतसाथी वॉयस",
@@ -294,6 +294,11 @@
     "subtitle": "समय के साथ अपने स्वास्थ्य मेट्रिक्स ट्रैक करें",
     "addVital": "वाइटल्स लॉग करें",
     "noVitals": "अभी तक कोई वाइटल्स रिकॉर्ड नहीं हुए।",
+    "vitalSaved": "वाइटल रीडिंग सिंक हो गई।",
+    "vitalError": "रीडिंग सेव नहीं हो सकी। दोबारा कोशिश करें।",
+    "noVitalsFirst": "इनसाइट्स के लिए पहले वाइटल्स जोड़ें।",
+    "aiAnalysisComplete": "AI स्वास्थ्य विश्लेषण पूर्ण",
+    "aiAnalysisError": "AI विश्लेषण नहीं हो सका।",
     "fields": {
       "bloodPressure": "ब्लड प्रेशर",
       "heartRate": "हृदय गति",

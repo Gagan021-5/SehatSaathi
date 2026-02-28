@@ -6,6 +6,7 @@ import {
     Activity, AlertCircle, ShieldCheck, Mail, Users
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import PageTransition from '../components/common/PageTransition';
 
 const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'];
@@ -23,6 +24,7 @@ const itemVariants = {
 
 export default function ProfilePage() {
     const { user, firebaseUser, updateProfile } = useAuth();
+    const { t } = useLanguage();
     const [saving, setSaving] = useState(false);
     const [form, setForm] = useState({
         name: user?.name || '',
@@ -57,9 +59,9 @@ export default function ProfilePage() {
                     relation: form.emergencyRelation,
                 },
             });
-            toast.success('Clinical profile synchronized securely.');
+            toast.success(t('profile.saveSuccess'));
         } catch {
-            toast.error('Unable to save profile right now. Please try again.');
+            toast.error(t('profile.saveError'));
         } finally {
             setSaving(false);
         }
@@ -93,10 +95,10 @@ export default function ProfilePage() {
 
                     <div className="flex-1">
                         <div className="inline-flex items-center gap-2 rounded-full bg-blue-500/20 px-3 py-1 text-xs font-bold uppercase tracking-wider text-blue-300 ring-1 ring-inset ring-blue-500/30 mb-3">
-                            <User size={14} /> Secure Identity
+                            <User size={14} /> {t('profile.secureIdentity')}
                         </div>
                         <h1 className="text-3xl md:text-4xl font-black tracking-tight text-white mb-2">
-                            {form.name || 'Member Profile'}
+                            {form.name || t('profile.title')}
                         </h1>
                         <div className="flex flex-wrap items-center gap-4 text-slate-400 text-sm font-medium">
                             <span className="flex items-center gap-1.5"><Mail size={16} /> {user?.email || firebaseUser?.email}</span>
@@ -116,8 +118,8 @@ export default function ProfilePage() {
                                 <User size={20} />
                             </div>
                             <div>
-                                <h2 className="text-xl font-bold tracking-tight text-slate-900">Demographics</h2>
-                                <p className="text-xs font-medium text-slate-500">Personal identification details</p>
+                                <h2 className="text-xl font-bold tracking-tight text-slate-900">{t('profile.demographics')}</h2>
+                                <p className="text-xs font-medium text-slate-500">{t('profile.demographicsSubtitle')}</p>
                             </div>
                         </div>
 
@@ -154,8 +156,8 @@ export default function ProfilePage() {
                                 <Activity size={20} />
                             </div>
                             <div>
-                                <h2 className="text-xl font-bold tracking-tight text-slate-900">Clinical Profile</h2>
-                                <p className="text-xs font-medium text-slate-500">Known conditions and sensitivities</p>
+                                <h2 className="text-xl font-bold tracking-tight text-slate-900">{t('profile.clinicalProfile')}</h2>
+                                <p className="text-xs font-medium text-slate-500">{t('profile.clinicalProfileSubtitle')}</p>
                             </div>
                         </div>
 
@@ -180,8 +182,8 @@ export default function ProfilePage() {
                                 <Users size={20} />
                             </div>
                             <div>
-                                <h2 className="text-xl font-bold tracking-tight text-slate-900">Emergency Protocol</h2>
-                                <p className="text-xs font-medium text-slate-500">Primary point of contact</p>
+                                <h2 className="text-xl font-bold tracking-tight text-slate-900">{t('profile.emergencyProtocol')}</h2>
+                                <p className="text-xs font-medium text-slate-500">{t('profile.emergencyProtocolSubtitle')}</p>
                             </div>
                         </div>
 
@@ -215,7 +217,7 @@ export default function ProfilePage() {
                         >
                             <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-teal-500/20 opacity-0 transition-opacity group-hover:opacity-100" />
                             {saving ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />}
-                            <span className="relative z-10">{saving ? 'Syncing to Vault...' : 'Save Clinical Profile'}</span>
+                            <span className="relative z-10">{saving ? t('profile.saving') : t('profile.saveProfile')}</span>
                         </button>
                     </div>
                 </motion.div>
