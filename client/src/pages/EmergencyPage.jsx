@@ -15,7 +15,7 @@ import {
     Activity
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
-import { getEmergencyGuidance } from '../services/api';
+import { getEmergencyGuidance, sendEmergencySMS } from '../services/api';
 import Card from '../components/common/Card';
 import PageTransition from '../components/common/PageTransition';
 import { useVoiceLoop } from '../hooks/useVoiceLoop';
@@ -37,6 +37,7 @@ export default function EmergencyPage() {
 
     const [result, setResult] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [sosSending, setSosSending] = useState(false);
     const [selectedType, setSelectedType] = useState('');
     const [customDesc, setCustomDesc] = useState('');
     const [isFocused, setIsFocused] = useState(false);
@@ -65,6 +66,50 @@ export default function EmergencyPage() {
             stopSession();
         };
     }, [stopSession]);
+
+    async function handleSOSClick() {
+        if (sosSending) return;
+        setSosSending(true);
+        const toastId = toast.loading('📍 Getting your location...');
+
+        try {
+            const position = await new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, {
+                    timeout: 8000,
+                    enableHighAccuracy: true,
+                });
+            });
+
+            const { latitude: lat, longitude: lng } = position.coords;
+            toast.loading('🚨 Sending emergency alert...', { id: toastId });
+            const { data } = await sendEmergencySMS({ lat, lng, locationDenied: false });
+
+            if (data?.sent === false && data?.reason === 'no_contact') {
+                toast.error('⚠️ No emergency contact saved. Please add one in your Profile.', { id: toastId, duration: 5000 });
+            } else {
+                toast.success(
+                    `✅ Emergency alert sent to ${data?.recipient || 'your contact'} with your location!`,
+                    { id: toastId, duration: 5000 }
+                );
+            }
+        } catch (geoError) {
+            // Location denied or timed out — send without coords
+            try {
+                toast.loading('🚨 Sending emergency alert (no location)...', { id: toastId });
+                const { data } = await sendEmergencySMS({ locationDenied: true });
+
+                if (data?.sent === false && data?.reason === 'no_contact') {
+                    toast.error('⚠️ No emergency contact saved. Please add one in your Profile.', { id: toastId, duration: 5000 });
+                } else {
+                    toast.success('✅ Location denied, but emergency alert sent to your contact!', { id: toastId, duration: 5000 });
+                }
+            } catch {
+                toast.error('❌ Failed to send emergency alert. Please call 112 directly.', { id: toastId, duration: 5000 });
+            }
+        } finally {
+            setSosSending(false);
+        }
+    }
 
     async function handleEmergency(situation) {
         const query = (typeof situation === 'string' ? situation : customDesc).trim();
@@ -190,14 +235,32 @@ export default function EmergencyPage() {
                                 </div>
                             </div>
 
-                            <a
-                                href="tel:112"
-                                className="group relative flex w-full md:w-auto items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-b from-rose-500 to-red-600 px-8 py-4 text-base font-bold text-white shadow-xl shadow-red-500/25 ring-1 ring-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-red-500/40 active:scale-95"
-                            >
-                                <PhoneCall size={20} className="animate-pulse" />
-                                {t('emergency.callNow')}
-                                <div className="absolute inset-0 rounded-2xl bg-white opacity-0 transition-opacity group-hover:opacity-10" />
-                            </a>
+                            <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+                                {/* SOS SMS Button */}
+                                <button
+                                    type="button"
+                                    onClick={handleSOSClick}
+                                    disabled={sosSending}
+                                    className="group relative flex w-full md:w-auto items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-b from-amber-500 to-orange-600 px-6 py-4 text-base font-bold text-white shadow-xl shadow-orange-500/25 ring-1 ring-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-orange-500/40 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                                >
+                                    {sosSending
+                                        ? <Loader2 size={20} className="animate-spin" />
+                                        : <Siren size={20} className="animate-pulse" />
+                                    }
+                                    {sosSending ? 'Sending...' : '🚨 SOS to Family'}
+                                    <div className="absolute inset-0 rounded-2xl bg-white opacity-0 transition-opacity group-hover:opacity-10" />
+                                </button>
+
+                                {/* Call 112 Button */}
+                                <a
+                                    href="tel:112"
+                                    className="group relative flex w-full md:w-auto items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-b from-rose-500 to-red-600 px-8 py-4 text-base font-bold text-white shadow-xl shadow-red-500/25 ring-1 ring-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-red-500/40 active:scale-95"
+                                >
+                                    <PhoneCall size={20} className="animate-pulse" />
+                                    {t('emergency.callNow')}
+                                    <div className="absolute inset-0 rounded-2xl bg-white opacity-0 transition-opacity group-hover:opacity-10" />
+                                </a>
+                            </div>
                         </div>
                     </Card>
                 </motion.div>

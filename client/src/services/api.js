@@ -56,12 +56,13 @@ export const sendMessage = ({ message = '', history = [], language = 'en', sessi
         language: typeof language === 'string' && language.trim() ? language : 'en',
         sessionId,
     });
-export const sendVoiceMessage = ({ message = '', history = [], language = 'en', sessionId } = {}) =>
+export const sendVoiceMessage = ({ message = '', history = [], language = 'en', sessionId, userId } = {}) =>
     api.post('/chat/voice', {
         message: typeof message === 'string' ? message : `${message ?? ''}`,
         history: Array.isArray(history) ? history : [],
         language: typeof language === 'string' && language.trim() ? language : 'en',
         sessionId,
+        userId: userId || null,
     });
 export const getChatHistory = () => api.get('/chat/history');
 export const getEmergencyGuidance = (data) => api.post('/chat/emergency', data);
@@ -113,6 +114,8 @@ export const updateRuralReminder = (id, reminderId, data) =>
     api.patch(`/sms/patients/${id}/reminders/${reminderId}`, data);
 export const removeRuralReminder = (id, reminderId) =>
     api.delete(`/sms/patients/${id}/reminders/${reminderId}`);
+export const sendEmergencySMS = (locationData = {}) =>
+    api.post('/sms/emergency', locationData);
 
 export const searchHospitals = (params, config = {}) => api.get('/hospitals/nearby', { params, ...config });
 export const searchPHCHospitals = (params, config = {}) => api.get('/hospitals/phc', { params, ...config });

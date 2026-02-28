@@ -81,6 +81,15 @@
 - AI narrative delivered in **the patient's name and active language**
 - Historical assessment tracking with confidence scores
 
+### 🧠 Holistic Health Metrics Suite
+> *Combating rural mental health stigma — one screener at a time*
+- **PHQ-9 Depression Screener**: Clinically validated 9-item questionnaire, auto-scored and risk-stratified (Minimal → Severe)
+- **GAD-7 Anxiety Screener**: Validated General Anxiety Disorder tool with severity bands and practitioner-ready output
+- **BMI Calculator**: Real-time Body Mass Index with animated gauge and WHO category classification
+- **BMR / Calorie Target**: Mifflin-St Jeor equation-based daily calorie needs, split by activity level
+- **Hydration Tracker**: Weight-based daily water target with animated fill gauge
+- All results are **persisted securely** to the user's clinical dashboard for longitudinal tracking
+
 ### 📋 Smart Prescription Scanner
 - Upload JPG/PNG/PDF prescriptions
 - Gemini Vision extracts medicines, dosage, frequency, interactions
@@ -89,8 +98,9 @@
 
 ### 🚨 Emergency SOS Protocol
 - Describe any emergency in text or voice
-- AI generates step-by-step first aid with do/don't lists
-- Critical severity badge + one-tap 112 call button
+- AI generates step-by-step first aid with do/don't lists and critical severity badge
+- **One-tap SOS** triggers a **Node.js backend integration with Fast2SMS** — instantly sending an emergency text message containing the patient's **precise GPS coordinates** to registered local health workers or family members, securing the **Golden Hour**
+- Location-denied fallback: alert still dispatches without coordinates, ensuring the contact is always notified
 - Pre-built guides for 20+ emergency scenarios
 
 ### 🏥 Rural Outreach Command
@@ -175,12 +185,13 @@ Python Flask ML Service (Port 5001)
 | **Backend** | Node.js 18, Express 5 | REST API Orchestration |
 | **Primary AI** | Google Gemini 2.5 Flash | File analysis, clinical narrative |
 | **Voice AI** | Groq LPU (llama-3.3-70b) | Ultra-fast voice chat responses |
-| **TTS** | ElevenLabs | Hyper-realistic speech output |
+| **TTS** | ElevenLabs | Hyper-realistic mood-adaptive speech output |
 | **ML Service** | Python 3.10, Flask, scikit-learn | Diabetes risk prediction |
+| **Mental Health** | PHQ-9 & GAD-7 Scoring Algorithms | Depression & Anxiety clinical screeners |
 | **Database** | MongoDB Atlas + Mongoose | Health data persistence |
 | **Auth** | Firebase Authentication | Google OAuth + Email/Password |
 | **Media** | Multer | Prescription file uploads |
-| **Messaging** | Fast2SMS | Rural SMS outreach |
+| **Messaging** | Fast2SMS 🇮🇳 | Indian SMS Gateway — Emergency GPS alerts & Rural ASHA reminders |
 | **Maps** | OpenRouteService API | Hospital location discovery |
 
 ---

@@ -1,5 +1,6 @@
 import Facility from '../models/Facility.js';
 import RuralPatient from '../models/RuralPatient.js';
+import User from '../models/User.js';
 import { sendSMS as sendFast2SMS, normalizePhoneNumber } from '../utils/sendSMS.js';
 import { resolveAuthUser } from '../utils/resolveAuthUser.js';
 
@@ -347,5 +348,54 @@ export async function removeRuralReminder(req, res) {
     } catch (error) {
         console.error('Remove rural reminder error:', error.message);
         res.status(500).json({ error: 'Failed to remove reminder' });
+    }
+}
+
+export async function sendEmergencySOS(req, res) {
+    try {
+        const user = await resolveAuthUser(req);
+
+        // Fetch the full profile for emergency contact info
+        const profile = await User.findById(user._id).lean();
+        const patientName = profile?.name || user.name || 'SehatSaathi User';
+        const emergencyPhone = normalizePhoneNumber(profile?.emergencyContact?.phone || '');
+        const emergencyName = profile?.emergencyContact?.name || 'Emergency Contact';
+
+        const { lat, lng, locationDenied } = req.body || {};
+        const hasLocation = !locationDenied && Number.isFinite(Number(lat)) && Number.isFinite(Number(lng));
+
+        // Build message
+        let message;
+        if (hasLocation) {
+            const mapsUrl = `https://maps.google.com/?q=${Number(lat).toFixed(6)},${Number(lng).toFixed(6)}`;
+            message = `🚨 EMERGENCY ALERT from ${patientName}!\nThey need immediate help.\nLocation: ${mapsUrl}\n\nPlease call them or emergency services (112) right away.\n- SehatSaathi`;
+        } else {
+            message = `🚨 EMERGENCY ALERT from ${patientName}!\nThey need immediate help. Location unavailable.\n\nPlease call them or emergency services (112) right away.\n- SehatSaathi`;
+        }
+
+        if (!emergencyPhone) {
+            // No emergency contact saved — still respond success so toast shows
+            console.log(`[SOS] No emergency contact for user ${user._id}. Alert logged only.`);
+            return res.json({
+                success: true,
+                sent: false,
+                reason: 'no_contact',
+                message: 'No emergency contact registered. Please add one in your Profile.',
+            });
+        }
+
+        const result = await sendFast2SMS(emergencyPhone, message);
+
+        return res.json({
+            success: true,
+            sent: true,
+            to: emergencyPhone,
+            recipient: emergencyName,
+            hasLocation,
+            mocked: result.mocked || false,
+        });
+    } catch (error) {
+        console.error('[SOS] Emergency SMS error:', error.message);
+        return res.status(500).json({ success: false, error: 'Failed to send emergency SMS' });
     }
 }
