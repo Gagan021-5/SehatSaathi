@@ -1,7 +1,8 @@
+import "./dotenv.js"; // ⚠️ MUST be first — loads .env before any controller reads process.env
 import cors from "cors";
 import express from "express";
 import mongoose from "mongoose";
-import "dotenv/config";
+
 
 import authRoutes from "./routes/authRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";

@@ -72,12 +72,22 @@ const genAI = process.env.GEMINI_API_KEY
     ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
     : null;
 
-const elevenLabsApiKey = `${process.env.ELEVENLABS_API_KEY || ''}`.trim();
-const elevenlabs = elevenLabsApiKey
-    ? new ElevenLabsClient({ apiKey: elevenLabsApiKey })
-    : null;
+const elevenLabsApiKey = () => `${process.env.ELEVENLABS_API_KEY || ''}`.trim();
 
-console.log(`[ELEVENLABS] ${elevenlabs ? '✓ API key configured — voice synthesis active' : '✗ No API key — falling back to browser TTS'}`);
+// Lazy singleton — created on first synthesis call, AFTER dotenv has populated process.env.
+// This is critical: module-level code runs before dotenv in ES module import graphs.
+let _elevenLabsClient = null;
+function getElevenLabsClient() {
+    const key = elevenLabsApiKey();
+    if (!key) return null;
+    if (!_elevenLabsClient) {
+        _elevenLabsClient = new ElevenLabsClient({ apiKey: key });
+        console.log('[ELEVENLABS] ✓ Client initialized with API key.');
+    }
+    return _elevenLabsClient;
+}
+
+console.log(`[ELEVENLABS] ${elevenLabsApiKey() ? '✓ API key present in env at module load' : '✗ API key NOT present at module load (will re-check at first call)'}`);
 
 const groq = process.env.GROQ_API_KEY
     ? new Groq({ apiKey: process.env.GROQ_API_KEY })
@@ -303,8 +313,14 @@ async function synthesizeMoodAudio(text, mood) {
         console.warn('[ELEVENLABS] Skipping synthesis because text is empty or invalid.');
         return { audioBase64: '', audioMimeType: '' };
     }
+
+    // Key check at call-time (not module load time)
+    const keyLoaded = !!process.env.ELEVENLABS_API_KEY;
+    console.log(`[ELEVENLABS] Key loaded at call-time: ${keyLoaded} | Voice ID: ${DEFAULT_VOICE_ID} | Model: ${ELEVEN_MODEL}`);
+
+    const elevenlabs = getElevenLabsClient();
     if (!elevenlabs) {
-        console.warn('[ELEVENLABS] ELEVENLABS_API_KEY is missing. Returning text-only response.');
+        console.warn('[ELEVENLABS] ✗ No API key — skipping synthesis. Add ELEVENLABS_API_KEY to server/.env');
         return { audioBase64: '', audioMimeType: '' };
     }
 
@@ -380,11 +396,16 @@ ${healthContext}` : 'No personal health data available for this session. Provide
         session.messages.push({ role: 'assistant', content: text, mood });
 
         let audioPayload = { audioBase64: '', audioMimeType: '' };
-        if (elevenlabs) {
+        if (getElevenLabsClient()) {
             try {
                 audioPayload = await synthesizeMoodAudio(text, mood);
             } catch (ttsError) {
-                console.error('[GROQ-VOICE] TTS failed:', ttsError.message);
+                console.error('[GROQ-VOICE] TTS failed:', {
+                    message: ttsError?.message,
+                    responseData: ttsError?.response?.data,
+                    status: ttsError?.response?.status,
+                    raw: ttsError,
+                });
             }
         }
 
@@ -458,8 +479,11 @@ export async function sendMessage(req, res) {
         } catch (ttsError) {
             console.error('[ELEVENLABS] synthesis failed:', {
                 message: ttsError?.message,
-                stack: ttsError?.stack,
-                hasApiKey: Boolean(elevenLabsApiKey),
+                responseData: ttsError?.response?.data,
+                status: ttsError?.response?.status,
+                voiceId: DEFAULT_VOICE_ID,
+                model: ELEVEN_MODEL,
+                hasApiKey: !!process.env.ELEVENLABS_API_KEY,
                 textLength: text?.length || 0,
                 mood,
             });

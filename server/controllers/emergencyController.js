@@ -1,12 +1,19 @@
-import dotenv from 'dotenv';
 import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
 import { getEmergencyGuidance as getGuidanceFromAI } from '../services/geminiService.js';
 import { sendSMS } from '../utils/sendSMS.js';
 
-dotenv.config();
+// Lazy singleton — reads ELEVENLABS_API_KEY at call-time, not module load time.
+let _elevenLabsClient = null;
+function getElevenLabsClient() {
+    const key = `${process.env.ELEVENLABS_API_KEY || ''}`.trim();
+    if (!key) return null;
+    if (!_elevenLabsClient) {
+        _elevenLabsClient = new ElevenLabsClient({ apiKey: key });
+        console.log('[ELEVENLABS/EMERGENCY] ✓ Client initialized.');
+    }
+    return _elevenLabsClient;
+}
 
-const elevenlabs = process.env.ELEVENLABS_API_KEY ? new ElevenLabsClient({ apiKey: process.env.ELEVENLABS_API_KEY }) : null;
-console.log(`[ELEVENLABS/EMERGENCY] ${elevenlabs ? '✓ API key configured' : '✗ No API key — emergency audio disabled'}`);
 
 // Utility to read stream to buffer
 async function streamToBuffer(stream) {
@@ -54,13 +61,14 @@ export async function getGuidance(req, res) {
         }
 
         let finalAudioBase64 = '';
-        if (elevenlabs && guidance?.steps?.length > 0) {
+        const elevenClient = getElevenLabsClient();
+        if (elevenClient && guidance?.steps?.length > 0) {
             try {
-                // Same defaults as chatController
                 const voiceSettings = { stability: 0.5, similarity_boost: 0.75, style: 0.0, use_speaker_boost: true };
                 const textToSpeak = guidance.steps.join('. ');
+                console.log(`[ELEVENLABS/EMERGENCY] Key loaded: ${!!process.env.ELEVENLABS_API_KEY} | Synthesizing ${textToSpeak.length} chars`);
 
-                const audioStream = await elevenlabs.textToSpeech.convert(process.env.ELEVENLABS_VOICE_ID || 'TX3LPaxmHKxFfWicjFpg', {
+                const audioStream = await elevenClient.textToSpeech.convert(process.env.ELEVENLABS_VOICE_ID || 'TX3LPaxmHKxFfWicjFpg', {
                     text: textToSpeak,
                     modelId: 'eleven_flash_v2_5',
                     outputFormat: 'mp3_44100_128',
@@ -69,8 +77,14 @@ export async function getGuidance(req, res) {
 
                 const audioBuffer = await streamToBuffer(audioStream);
                 finalAudioBase64 = audioBuffer.toString('base64');
+                console.log(`[ELEVENLABS/EMERGENCY] ✓ ${audioBuffer.length} bytes generated`);
             } catch (ttsErr) {
-                console.error('[ELEVENLABS EMERGENCY] Error generating audio:', ttsErr.message);
+                console.error('[ELEVENLABS/EMERGENCY] TTS failed:', {
+                    message: ttsErr?.message,
+                    responseData: ttsErr?.response?.data,
+                    status: ttsErr?.response?.status,
+                    hasApiKey: !!process.env.ELEVENLABS_API_KEY,
+                });
             }
         }
 
