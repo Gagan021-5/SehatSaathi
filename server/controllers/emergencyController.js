@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
 import { getEmergencyGuidance as getGuidanceFromAI } from '../services/geminiService.js';
+import { sendSMS } from '../utils/sendSMS.js';
 
 dotenv.config();
 
@@ -76,5 +77,29 @@ export async function getGuidance(req, res) {
     } catch (err) {
         console.error('Emergency error:', err.message);
         res.status(500).json({ error: 'Failed to get emergency guidance' });
+    }
+}
+
+export async function ussdWebhook(req, res) {
+    try {
+        const { phoneNumber, text } = req.body;
+
+        if (text !== '*123#') {
+            return res.status(400).json({ error: 'Invalid USSD code. Expected *123#' });
+        }
+
+        const message =
+            'SehatSaathi Alert: Emergency USSD triggered. Help is on the way to your registered rural location.';
+
+        await sendSMS(phoneNumber, message);
+
+        return res.status(200).json({
+            success: true,
+            message: 'USSD emergency alert sent successfully.',
+            recipient: phoneNumber,
+        });
+    } catch (err) {
+        console.error('[USSD Webhook] Error:', err.message);
+        return res.status(500).json({ error: 'Failed to process USSD webhook.' });
     }
 }

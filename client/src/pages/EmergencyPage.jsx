@@ -12,7 +12,8 @@ import {
     Siren,
     Volume2,
     ChevronRight,
-    Activity
+    Activity,
+    Smartphone
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { getEmergencyGuidance, sendEmergencySMS } from '../services/api';
@@ -42,6 +43,8 @@ export default function EmergencyPage() {
     const [customDesc, setCustomDesc] = useState('');
     const [isFocused, setIsFocused] = useState(false);
     const [emergencyAudio, setEmergencyAudio] = useState(null);
+    const [testPhoneNumber, setTestPhoneNumber] = useState('');
+    const [ussdLoading, setUssdLoading] = useState(false);
 
     // Extracted robust audio play ref
     const audioRef = useRef(null);
@@ -170,6 +173,38 @@ export default function EmergencyPage() {
     function toggleMic() {
         if (sessionActive) stopSession();
         else startSession();
+    }
+
+    async function handleUSSDTrigger() {
+        if (!testPhoneNumber.trim()) {
+            toast.error('📵 Please enter a phone number to simulate.');
+            return;
+        }
+        setUssdLoading(true);
+        const toastId = toast.loading('📡 Dialing *123# via USSD...');
+        try {
+            const res = await fetch(
+                `${import.meta.env.VITE_API_URL}/emergency/ussd-webhook`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phoneNumber: testPhoneNumber, text: '*123#' }),
+                }
+            );
+            const data = await res.json();
+            if (res.ok) {
+                toast.success(
+                    `✅ USSD Alert sent! SMS dispatched to ${testPhoneNumber}.`,
+                    { id: toastId, duration: 6000 }
+                );
+            } else {
+                toast.error(`❌ ${data?.error || 'USSD trigger failed.'}`, { id: toastId, duration: 5000 });
+            }
+        } catch (err) {
+            toast.error('❌ Network error. Check your connection.', { id: toastId, duration: 5000 });
+        } finally {
+            setUssdLoading(false);
+        }
     }
 
     const steps = result?.guidance?.steps || result?.steps || result?.result?.steps || [];
@@ -451,6 +486,90 @@ export default function EmergencyPage() {
                 </AnimatePresence>
 
             </motion.div>
+
+            {/* ── USSD Simulator Section ─────────────────────────────────── */}
+            <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, type: 'spring', damping: 20 }}
+                className="relative z-10 mt-2"
+            >
+                <Card className="rounded-[2rem] border border-emerald-200/60 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 md:p-8 shadow-2xl shadow-slate-900/40 overflow-hidden">
+                    {/* Decorative scanline overlay */}
+                    <div className="pointer-events-none absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(255,255,255,0.015)_2px,rgba(255,255,255,0.015)_4px)] rounded-[2rem]" />
+
+                    <div className="relative flex flex-col md:flex-row items-start md:items-center gap-6">
+
+                        {/* Left: Feature-phone mockup */}
+                        <div className="shrink-0 flex flex-col items-center gap-2">
+                            <div className="relative flex flex-col items-center justify-start w-36 rounded-[2rem] border-4 border-slate-600 bg-slate-950 shadow-inner shadow-slate-700 p-3 gap-2">
+                                {/* Screen */}
+                                <div className="w-full rounded-xl bg-green-950 border border-green-800 p-2 min-h-[72px] flex flex-col justify-between font-mono">
+                                    <p className="text-[9px] text-green-400 leading-tight">SehatSaathi</p>
+                                    <p className="text-[11px] font-bold text-green-300 tracking-widest">*123#</p>
+                                    <p className="text-[8px] text-green-500/70 mt-1">USSD • OFFLINE</p>
+                                </div>
+                                {/* Keypad dots */}
+                                <div className="grid grid-cols-3 gap-1 w-full px-1">
+                                    {['1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '0', '#'].map(k => (
+                                        <div key={k} className="flex h-5 w-full items-center justify-center rounded bg-slate-700 text-[8px] font-bold text-slate-300">{k}</div>
+                                    ))}
+                                </div>
+                                {/* Call button */}
+                                <div className="flex gap-1 w-full">
+                                    <div className="flex-1 h-4 rounded bg-green-700 text-center text-[7px] text-white font-bold leading-4">CALL</div>
+                                    <div className="flex-1 h-4 rounded bg-red-700 text-center text-[7px] text-white font-bold leading-4">END</div>
+                                </div>
+                            </div>
+                            <span className="text-[10px] text-slate-500 font-mono">Nokia-style</span>
+                        </div>
+
+                        {/* Right: Controls */}
+                        <div className="flex-1 flex flex-col gap-4">
+                            <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <Smartphone size={16} className="text-emerald-400" />
+                                    <h3 className="text-base font-bold text-white">Offline USSD Simulator <span className="text-xs font-normal text-emerald-400 ml-1">(Demo)</span></h3>
+                                </div>
+                                <p className="text-xs text-slate-400 leading-relaxed">
+                                    Simulates a feature-phone user dialing <span className="font-mono text-emerald-300">*123#</span> with zero internet. The backend triggers an SMS alert — no smartphone required.
+                                </p>
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <div className="relative flex-1">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-mono">+91</span>
+                                    <input
+                                        type="tel"
+                                        maxLength={10}
+                                        value={testPhoneNumber}
+                                        onChange={e => setTestPhoneNumber(e.target.value.replace(/\D/g, ''))}
+                                        placeholder="10-digit mobile number"
+                                        className="w-full rounded-xl border border-slate-600 bg-slate-800 py-3 pl-10 pr-4 text-sm font-mono text-white placeholder:text-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/40"
+                                    />
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={handleUSSDTrigger}
+                                    disabled={ussdLoading}
+                                    className="group relative flex shrink-0 items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-emerald-500 to-green-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-500/25 ring-1 ring-white/10 transition-all duration-300 hover:scale-[1.03] hover:shadow-emerald-500/40 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+                                >
+                                    {ussdLoading
+                                        ? <Loader2 size={16} className="animate-spin" />
+                                        : <PhoneCall size={16} className="group-hover:animate-pulse" />
+                                    }
+                                    {ussdLoading ? 'Dialing...' : 'Dial *123#'}
+                                </button>
+                            </div>
+
+                            <p className="text-[11px] text-slate-500 font-mono border-t border-slate-700 pt-3">
+                                ⚡ Works even on 2G and no smartphones needed — designed for rural India.
+                            </p>
+                        </div>
+                    </div>
+                </Card>
+            </motion.div>
+
         </PageTransition>
     );
 }
