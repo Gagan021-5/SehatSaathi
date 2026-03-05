@@ -1,41 +1,7 @@
-import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
 import { getEmergencyGuidance as getGuidanceFromAI } from '../services/geminiService.js';
 import { sendSMS } from '../utils/sendSMS.js';
 
-// Lazy singleton — reads ELEVENLABS_API_KEY at call-time, not module load time.
-let _elevenLabsClient = null;
-function getElevenLabsClient() {
-    const key = `${process.env.ELEVENLABS_API_KEY || ''}`.trim();
-    if (!key) return null;
-    if (!_elevenLabsClient) {
-        _elevenLabsClient = new ElevenLabsClient({ apiKey: key });
-        console.log('[ELEVENLABS/EMERGENCY] ✓ Client initialized.');
-    }
-    return _elevenLabsClient;
-}
-
-
-// Utility to read stream to buffer
-async function streamToBuffer(stream) {
-    if (typeof stream.getReader === 'function') {
-        const reader = stream.getReader();
-        const chunks = [];
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            if (value) chunks.push(Buffer.from(value));
-        }
-        return Buffer.concat(chunks);
-    }
-    if (typeof stream[Symbol.asyncIterator] === 'function') {
-        const chunks = [];
-        for await (const value of stream) {
-            if (value) chunks.push(Buffer.from(value));
-        }
-        return Buffer.concat(chunks);
-    }
-    return Buffer.alloc(0);
-}
+const EMERGENCY_VOICE_ID = process.env.ELEVENLABS_VOICE_ID || 'cgSgspJ2msm6clMCkdW9';
 
 export async function getGuidance(req, res) {
     try {
@@ -61,30 +27,40 @@ export async function getGuidance(req, res) {
         }
 
         let finalAudioBase64 = '';
-        const elevenClient = getElevenLabsClient();
-        if (elevenClient && guidance?.steps?.length > 0) {
+        const apiKey = process.env.ELEVENLABS_API_KEY;
+        if (apiKey && guidance?.steps?.length > 0) {
             try {
-                const voiceSettings = { stability: 0.5, similarity_boost: 0.75, style: 0.0, use_speaker_boost: true };
                 const textToSpeak = guidance.steps.join('. ');
-                console.log(`[ELEVENLABS/EMERGENCY] Key loaded: ${!!process.env.ELEVENLABS_API_KEY} | Synthesizing ${textToSpeak.length} chars`);
+                console.log(`[ELEVENLABS/EMERGENCY] Requesting TTS | ${textToSpeak.length} chars | voice: ${EMERGENCY_VOICE_ID}`);
 
-                const audioStream = await elevenClient.textToSpeech.convert(process.env.ELEVENLABS_VOICE_ID || 'TX3LPaxmHKxFfWicjFpg', {
-                    text: textToSpeak,
-                    modelId: 'eleven_flash_v2_5',
-                    outputFormat: 'mp3_44100_128',
-                    voiceSettings,
-                });
+                const response = await fetch(
+                    `https://api.elevenlabs.io/v1/text-to-speech/${EMERGENCY_VOICE_ID}?output_format=mp3_44100_128`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'audio/mpeg',
+                            'Content-Type': 'application/json',
+                            'xi-api-key': apiKey,
+                        },
+                        body: JSON.stringify({
+                            text: textToSpeak,
+                            model_id: 'eleven_multilingual_v2',
+                            voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+                        }),
+                    }
+                );
 
-                const audioBuffer = await streamToBuffer(audioStream);
-                finalAudioBase64 = audioBuffer.toString('base64');
-                console.log(`[ELEVENLABS/EMERGENCY] ✓ ${audioBuffer.length} bytes generated`);
+                if (!response.ok) {
+                    const errText = await response.text();
+                    console.error(`[ELEVENLABS/EMERGENCY] HTTP ${response.status} Error:`, errText);
+                } else {
+                    const arrayBuffer = await response.arrayBuffer();
+                    const buffer = Buffer.from(arrayBuffer);
+                    finalAudioBase64 = buffer.toString('base64');
+                    console.log(`[ELEVENLABS/EMERGENCY] ✓ ${buffer.length} bytes generated`);
+                }
             } catch (ttsErr) {
-                console.error('[ELEVENLABS/EMERGENCY] TTS failed:', {
-                    message: ttsErr?.message,
-                    responseData: ttsErr?.response?.data,
-                    status: ttsErr?.response?.status,
-                    hasApiKey: !!process.env.ELEVENLABS_API_KEY,
-                });
+                console.error('[ELEVENLABS/EMERGENCY] Fetch error:', ttsErr.message);
             }
         }
 

@@ -1,5 +1,4 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
 import Groq from 'groq-sdk';
 import HealthRecord from '../models/HealthRecord.js';
 import Prediction from '../models/Prediction.js';
@@ -8,8 +7,7 @@ import User from '../models/User.js';
 
 const sessions = new Map();
 const GEMINI_MODEL = 'gemini-2.0-flash';
-const ELEVEN_MODEL = 'eleven_flash_v2_5';
-const DEFAULT_VOICE_ID = process.env.ELEVENLABS_VOICE_ID || 'TX3LPaxmHKxFfWicjFpg';
+const DEFAULT_VOICE_ID = process.env.ELEVENLABS_VOICE_ID || 'cgSgspJ2msm6clMCkdW9';
 
 const SYSTEM_INSTRUCTION = `Act as "SehatSaathi" — you are a female AI health companion with a warm, empathetic voice.
 
@@ -72,22 +70,7 @@ const genAI = process.env.GEMINI_API_KEY
     ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
     : null;
 
-const elevenLabsApiKey = () => `${process.env.ELEVENLABS_API_KEY || ''}`.trim();
-
-// Lazy singleton — created on first synthesis call, AFTER dotenv has populated process.env.
-// This is critical: module-level code runs before dotenv in ES module import graphs.
-let _elevenLabsClient = null;
-function getElevenLabsClient() {
-    const key = elevenLabsApiKey();
-    if (!key) return null;
-    if (!_elevenLabsClient) {
-        _elevenLabsClient = new ElevenLabsClient({ apiKey: key });
-        console.log('[ELEVENLABS] ✓ Client initialized with API key.');
-    }
-    return _elevenLabsClient;
-}
-
-console.log(`[ELEVENLABS] ${elevenLabsApiKey() ? '✓ API key present in env at module load' : '✗ API key NOT present at module load (will re-check at first call)'}`);
+console.log(`[ELEVENLABS] Voice ID: ${DEFAULT_VOICE_ID} | Model: eleven_multilingual_v2`);
 
 const groq = process.env.GROQ_API_KEY
     ? new Groq({ apiKey: process.env.GROQ_API_KEY })
@@ -281,67 +264,50 @@ function tryParseStructuredPayload(rawText = '') {
     };
 }
 
-async function readableStreamToBuffer(stream) {
-    if (!stream) return Buffer.alloc(0);
-
-    if (typeof stream.getReader === 'function') {
-        const reader = stream.getReader();
-        const chunks = [];
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            if (value) chunks.push(Buffer.from(value));
-        }
-        return Buffer.concat(chunks);
-    }
-
-    if (typeof stream[Symbol.asyncIterator] === 'function') {
-        const chunks = [];
-        for await (const value of stream) {
-            if (value) chunks.push(Buffer.from(value));
-        }
-        return Buffer.concat(chunks);
-    }
-
-    return Buffer.alloc(0);
-}
-
 async function synthesizeMoodAudio(text, mood) {
     const safeText = typeof text === 'string' ? text.trim() : '';
-    const safeMood = typeof mood === 'string' ? mood : '';
-    if (!safeText) {
-        console.warn('[ELEVENLABS] Skipping synthesis because text is empty or invalid.');
+    const apiKey = process.env.ELEVENLABS_API_KEY;
+    const voiceId = process.env.ELEVENLABS_VOICE_ID || DEFAULT_VOICE_ID;
+
+    if (!safeText || !apiKey) {
+        console.warn(`[ELEVENLABS] Missing ${!safeText ? 'text' : 'API key'} — skipping synthesis.`);
         return { audioBase64: '', audioMimeType: '' };
     }
 
-    // Key check at call-time (not module load time)
-    const keyLoaded = !!process.env.ELEVENLABS_API_KEY;
-    console.log(`[ELEVENLABS] Key loaded at call-time: ${keyLoaded} | Voice ID: ${DEFAULT_VOICE_ID} | Model: ${ELEVEN_MODEL}`);
+    console.log(`[ELEVENLABS] Requesting TTS | voice: ${voiceId} | model: eleven_multilingual_v2 | chars: ${safeText.length}`);
 
-    const elevenlabs = getElevenLabsClient();
-    if (!elevenlabs) {
-        console.warn('[ELEVENLABS] ✗ No API key — skipping synthesis. Add ELEVENLABS_API_KEY to server/.env');
+    try {
+        const response = await fetch(
+            `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`,
+            {
+                method: 'POST',
+                headers: {
+                    'Accept': 'audio/mpeg',
+                    'Content-Type': 'application/json',
+                    'xi-api-key': apiKey,
+                },
+                body: JSON.stringify({
+                    text: safeText,
+                    model_id: 'eleven_multilingual_v2',
+                    voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+                }),
+            }
+        );
+
+        if (!response.ok) {
+            const errText = await response.text();
+            console.error(`[ELEVENLABS] HTTP ${response.status} Error:`, errText);
+            return { audioBase64: '', audioMimeType: '' };
+        }
+
+        const arrayBuffer = await response.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        console.log(`[ELEVENLABS] ✓ Synthesized ${safeText.length} chars → ${buffer.length} bytes (mood: ${mood})`);
+        return { audioBase64: buffer.toString('base64'), audioMimeType: 'audio/mpeg' };
+    } catch (error) {
+        console.error('[ELEVENLABS] Fetch error:', error.message);
         return { audioBase64: '', audioMimeType: '' };
     }
-
-    const voiceSettings = MOOD_SETTINGS[normalizeMood(safeMood)] || MOOD_SETTINGS.Calm;
-    const audioStream = await elevenlabs.textToSpeech.convert(DEFAULT_VOICE_ID, {
-        text: safeText,
-        modelId: ELEVEN_MODEL,
-        outputFormat: 'mp3_44100_128',
-        voiceSettings,
-    });
-
-    const buffer = await readableStreamToBuffer(audioStream);
-    if (buffer.length) {
-        console.log(`[ELEVENLABS] ✓ Synthesized ${text.length} chars → ${buffer.length} bytes audio (mood: ${safeMood})`);
-    } else {
-        console.warn('[ELEVENLABS] ✗ Synthesis returned empty buffer');
-    }
-    return {
-        audioBase64: buffer.length ? buffer.toString('base64') : '',
-        audioMimeType: 'audio/mpeg',
-    };
 }
 
 export async function voiceChat(req, res) {
@@ -396,7 +362,7 @@ ${healthContext}` : 'No personal health data available for this session. Provide
         session.messages.push({ role: 'assistant', content: text, mood });
 
         let audioPayload = { audioBase64: '', audioMimeType: '' };
-        if (getElevenLabsClient()) {
+        if (process.env.ELEVENLABS_API_KEY) {
             try {
                 audioPayload = await synthesizeMoodAudio(text, mood);
             } catch (ttsError) {
@@ -404,7 +370,6 @@ ${healthContext}` : 'No personal health data available for this session. Provide
                     message: ttsError?.message,
                     responseData: ttsError?.response?.data,
                     status: ttsError?.response?.status,
-                    raw: ttsError,
                 });
             }
         }
@@ -482,7 +447,7 @@ export async function sendMessage(req, res) {
                 responseData: ttsError?.response?.data,
                 status: ttsError?.response?.status,
                 voiceId: DEFAULT_VOICE_ID,
-                model: ELEVEN_MODEL,
+                model: 'eleven_multilingual_v2',
                 hasApiKey: !!process.env.ELEVENLABS_API_KEY,
                 textLength: text?.length || 0,
                 mood,
