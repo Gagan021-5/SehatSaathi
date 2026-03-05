@@ -1,4 +1,3 @@
-import { SpeechHistoryItemResponseModelSource } from "@elevenlabs/elevenlabs-js/api/index.js";
 import {
   sendMessage,
   voiceChat,
