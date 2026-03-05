@@ -31,7 +31,7 @@
 
 <br/>
 
-[🚀 Live Demo](#-live-demo) &nbsp;•&nbsp; [🎥 Demo Video](#-demo-video) &nbsp;•&nbsp; [🧠 AI Architecture](#-ai--ml-architecture) &nbsp;•&nbsp; [⚡ Quick Start](#-quick-start) &nbsp;•&nbsp; [📡 API Reference](#-api-reference)
+[🚀 Live Demo](https://sehat-9mfh.onrender.com) &nbsp;•&nbsp; [🎥 Demo Video](https://youtu.be/mdKu8jR5wUY) &nbsp;•&nbsp; [🧠 AI Architecture](#-ai--ml-architecture) &nbsp;•&nbsp; [⚡ Quick Start](#-quick-start) &nbsp;•&nbsp; [📡 API Reference](#-api-reference)
 
 </div>
 
@@ -224,7 +224,7 @@ Python Flask ML Service (Port 5001)
 
 ## 🚀 Live Demo
 
-> **[▶ Open SehatSaathi Live App](#)** *(Update once deployed to Render/Vercel)*
+> **[▶ Open SehatSaathi Live App](https://sehat-9mfh.onrender.com)**
 
 ### Login Credentials for Demo
 | Field | Value |
@@ -236,7 +236,7 @@ Python Flask ML Service (Port 5001)
 
 ## 🎥 Demo Video
 
-> **[📺 Watch Full Demo on YouTube / Loom](#)** *(Add link here)*
+> **[📺 Watch Full Demo on YouTube / Loom](https://youtu.be/mdKu8jR5wUY)**
 
 **Demo script covers:**
 1. 🔐 Google Sign-In with real profile photo appearing instantly
