@@ -3,7 +3,7 @@ import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import {
     Loader2, Save, User, Phone, Calendar, Droplet,
-    Activity, AlertCircle, ShieldCheck, Mail, Users
+    Activity, AlertCircle, ShieldCheck, Mail, Users, Plus, Trash2
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -29,14 +29,17 @@ export default function ProfilePage() {
     const [form, setForm] = useState({
         name: user?.name || '',
         phone: user?.phone || '',
-        dateOfBirth: user?.dateOfBirth?.split('T')[0] || '', // Ensure proper date format for input
+        dateOfBirth: user?.dateOfBirth?.split('T')[0] || '',
         gender: user?.gender || '',
         bloodGroup: user?.bloodGroup || '',
         allergies: user?.allergies?.join(', ') || '',
         conditions: user?.conditions?.join(', ') || '',
-        emergencyName: user?.emergencyContact?.name || '',
-        emergencyPhone: user?.emergencyContact?.phone || '',
-        emergencyRelation: user?.emergencyContact?.relation || '',
+        emergencyContacts: (user?.emergencyContacts?.length
+            ? user.emergencyContacts
+            : user?.emergencyContact?.phone
+                ? [user.emergencyContact]
+                : [{ name: '', phone: '', relation: '' }]
+        ).map(c => ({ name: c.name || '', phone: c.phone || '', relation: c.relation || '' })),
     });
 
     const setField = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
@@ -53,11 +56,9 @@ export default function ProfilePage() {
                 bloodGroup: form.bloodGroup,
                 allergies: form.allergies.split(',').map((item) => item.trim()).filter(Boolean),
                 conditions: form.conditions.split(',').map((item) => item.trim()).filter(Boolean),
-                emergencyContact: {
-                    name: form.emergencyName,
-                    phone: form.emergencyPhone,
-                    relation: form.emergencyRelation,
-                },
+                emergencyContacts: form.emergencyContacts
+                    .filter(c => c.name.trim() || c.phone.trim())
+                    .map(c => ({ name: c.name.trim(), phone: c.phone.trim(), relation: c.relation.trim() })),
             });
             toast.success(t('profile.saveSuccess'));
         } catch {
@@ -181,26 +182,76 @@ export default function ProfilePage() {
                             <div className="p-2.5 rounded-xl bg-rose-50 text-rose-600">
                                 <Users size={20} />
                             </div>
-                            <div>
+                            <div className="flex-1">
                                 <h2 className="text-xl font-bold tracking-tight text-slate-900">{t('profile.emergencyProtocol')}</h2>
                                 <p className="text-xs font-medium text-slate-500">{t('profile.emergencyProtocolSubtitle')}</p>
                             </div>
+                            {form.emergencyContacts.length < 3 && (
+                                <button
+                                    type="button"
+                                    onClick={() => setForm(prev => ({
+                                        ...prev,
+                                        emergencyContacts: [...prev.emergencyContacts, { name: '', phone: '', relation: '' }]
+                                    }))}
+                                    className="flex items-center gap-1.5 rounded-full bg-rose-50 px-4 py-2 text-xs font-bold text-rose-600 transition-all hover:bg-rose-100 active:scale-95"
+                                >
+                                    <Plus size={14} /> Add Contact
+                                </button>
+                            )}
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                            <InputField
-                                label="Contact Name" value={form.emergencyName}
-                                onChange={(v) => setField('emergencyName', v)} placeholder="Full Name"
-                            />
-                            <InputField
-                                label="Relationship" value={form.emergencyRelation}
-                                onChange={(v) => setField('emergencyRelation', v)} placeholder="e.g. Spouse, Parent"
-                            />
-                            <InputField
-                                label="Emergency Phone" value={form.emergencyPhone} type="tel"
-                                onChange={(v) => setField('emergencyPhone', v)} placeholder="+91 XXXXX XXXXX"
-                            />
+                        <div className="space-y-4">
+                            {form.emergencyContacts.map((contact, idx) => (
+                                <div key={idx} className="relative rounded-2xl border border-slate-100 bg-slate-50/50 p-4">
+                                    {form.emergencyContacts.length > 1 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setForm(prev => ({
+                                                ...prev,
+                                                emergencyContacts: prev.emergencyContacts.filter((_, i) => i !== idx)
+                                            }))}
+                                            className="absolute top-3 right-3 p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors"
+                                            title="Remove contact"
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
+                                    )}
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Contact {idx + 1}</p>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <InputField
+                                            label="Contact Name" value={contact.name}
+                                            onChange={(v) => setForm(prev => {
+                                                const updated = [...prev.emergencyContacts];
+                                                updated[idx] = { ...updated[idx], name: v };
+                                                return { ...prev, emergencyContacts: updated };
+                                            })} placeholder="Full Name"
+                                        />
+                                        <InputField
+                                            label="Relationship" value={contact.relation}
+                                            onChange={(v) => setForm(prev => {
+                                                const updated = [...prev.emergencyContacts];
+                                                updated[idx] = { ...updated[idx], relation: v };
+                                                return { ...prev, emergencyContacts: updated };
+                                            })} placeholder="e.g. Spouse, Parent"
+                                        />
+                                        <InputField
+                                            label="Emergency Phone" value={contact.phone} type="tel"
+                                            onChange={(v) => setForm(prev => {
+                                                const updated = [...prev.emergencyContacts];
+                                                updated[idx] = { ...updated[idx], phone: v };
+                                                return { ...prev, emergencyContacts: updated };
+                                            })} placeholder="+91 XXXXX XXXXX"
+                                        />
+                                    </div>
+                                </div>
+                            ))}
                         </div>
+
+                        {form.emergencyContacts.length < 3 && (
+                            <p className="mt-3 text-[11px] text-slate-400 font-medium text-center">
+                                You can add up to 3 emergency contacts. All will be notified during an SOS.
+                            </p>
+                        )}
                     </motion.div>
                 </motion.div>
 

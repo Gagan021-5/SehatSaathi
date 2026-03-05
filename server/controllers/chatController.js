@@ -77,6 +77,8 @@ const elevenlabs = elevenLabsApiKey
     ? new ElevenLabsClient({ apiKey: elevenLabsApiKey })
     : null;
 
+console.log(`[ELEVENLABS] ${elevenlabs ? '✓ API key configured — voice synthesis active' : '✗ No API key — falling back to browser TTS'}`);
+
 const groq = process.env.GROQ_API_KEY
     ? new Groq({ apiKey: process.env.GROQ_API_KEY })
     : null;
@@ -315,6 +317,11 @@ async function synthesizeMoodAudio(text, mood) {
     });
 
     const buffer = await readableStreamToBuffer(audioStream);
+    if (buffer.length) {
+        console.log(`[ELEVENLABS] ✓ Synthesized ${text.length} chars → ${buffer.length} bytes audio (mood: ${safeMood})`);
+    } else {
+        console.warn('[ELEVENLABS] ✗ Synthesis returned empty buffer');
+    }
     return {
         audioBase64: buffer.length ? buffer.toString('base64') : '',
         audioMimeType: 'audio/mpeg',

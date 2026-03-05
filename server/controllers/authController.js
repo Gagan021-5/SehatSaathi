@@ -39,7 +39,7 @@ export async function getProfile(req, res) {
 export async function updateProfile(req, res) {
     try {
         const allowed = ['name', 'phone', 'dateOfBirth', 'gender', 'bloodGroup',
-            'allergies', 'conditions', 'emergencyContact', 'language'];
+            'allergies', 'conditions', 'emergencyContacts', 'language'];
         const updates = {};
         allowed.forEach(f => { if (req.body[f] !== undefined) updates[f] = req.body[f]; });
 

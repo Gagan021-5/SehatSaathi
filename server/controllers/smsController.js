@@ -355,11 +355,20 @@ export async function sendEmergencySOS(req, res) {
     try {
         const user = await resolveAuthUser(req);
 
-        // Fetch the full profile for emergency contact info
+        // Fetch the full profile for emergency contacts
         const profile = await User.findById(user._id).lean();
         const patientName = profile?.name || user.name || 'SehatSaathi User';
-        const emergencyPhone = normalizePhoneNumber(profile?.emergencyContact?.phone || '');
-        const emergencyName = profile?.emergencyContact?.name || 'Emergency Contact';
+
+        // Support both new array and legacy single contact
+        const contacts = Array.isArray(profile?.emergencyContacts) && profile.emergencyContacts.length
+            ? profile.emergencyContacts
+            : profile?.emergencyContact?.phone
+                ? [profile.emergencyContact]
+                : [];
+
+        const validContacts = contacts
+            .map(c => ({ name: c.name || 'Emergency Contact', phone: normalizePhoneNumber(c.phone || '') }))
+            .filter(c => c.phone);
 
         const { lat, lng, locationDenied } = req.body || {};
         const hasLocation = !locationDenied && Number.isFinite(Number(lat)) && Number.isFinite(Number(lng));
@@ -373,9 +382,8 @@ export async function sendEmergencySOS(req, res) {
             message = `🚨 EMERGENCY ALERT from ${patientName}!\nThey need immediate help. Location unavailable.\n\nPlease call them or emergency services (112) right away.\n- SehatSaathi`;
         }
 
-        if (!emergencyPhone) {
-            // No emergency contact saved — still respond success so toast shows
-            console.log(`[SOS] No emergency contact for user ${user._id}. Alert logged only.`);
+        if (!validContacts.length) {
+            console.log(`[SOS] No emergency contacts for user ${user._id}. Alert logged only.`);
             return res.json({
                 success: true,
                 sent: false,
@@ -384,18 +392,33 @@ export async function sendEmergencySOS(req, res) {
             });
         }
 
-        const result = await sendFast2SMS(emergencyPhone, message);
+        // Send SMS to ALL valid contacts in parallel
+        const results = await Promise.allSettled(
+            validContacts.map(c => sendFast2SMS(c.phone, message))
+        );
+
+        const summary = validContacts.map((c, i) => ({
+            name: c.name,
+            phone: c.phone,
+            status: results[i].status === 'fulfilled' ? 'sent' : 'failed',
+            mocked: results[i].status === 'fulfilled' ? (results[i].value?.mocked || false) : false,
+        }));
+
+        const sentCount = summary.filter(s => s.status === 'sent').length;
+        console.log(`[SOS] Sent emergency SMS to ${sentCount}/${validContacts.length} contacts for user ${user._id}`);
 
         return res.json({
             success: true,
-            sent: true,
-            to: emergencyPhone,
-            recipient: emergencyName,
+            sent: sentCount > 0,
+            totalContacts: validContacts.length,
+            sentCount,
+            contacts: summary,
+            recipient: validContacts.map(c => c.name).join(', '),
             hasLocation,
-            mocked: result.mocked || false,
         });
     } catch (error) {
         console.error('[SOS] Emergency SMS error:', error.message);
         return res.status(500).json({ success: false, error: 'Failed to send emergency SMS' });
     }
 }
+

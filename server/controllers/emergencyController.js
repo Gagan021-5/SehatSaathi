@@ -6,6 +6,7 @@ import { sendSMS } from '../utils/sendSMS.js';
 dotenv.config();
 
 const elevenlabs = process.env.ELEVENLABS_API_KEY ? new ElevenLabsClient({ apiKey: process.env.ELEVENLABS_API_KEY }) : null;
+console.log(`[ELEVENLABS/EMERGENCY] ${elevenlabs ? '✓ API key configured' : '✗ No API key — emergency audio disabled'}`);
 
 // Utility to read stream to buffer
 async function streamToBuffer(stream) {
