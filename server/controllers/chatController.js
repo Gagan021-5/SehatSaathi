@@ -5,9 +5,24 @@ import Prediction from '../models/Prediction.js';
 import MedicineReminder from '../models/MedicineReminder.js';
 import User from '../models/User.js';
 
+// Ensure fetch is available (Node < 18 compatibility for Render)
+let _fetch = globalThis.fetch;
+if (!_fetch) {
+    try {
+        const mod = await import('node-fetch');
+        _fetch = mod.default;
+        console.log('[ELEVENLABS] Using node-fetch polyfill (Node < 18 detected)');
+    } catch {
+        console.warn('[ELEVENLABS] No fetch available — TTS will be disabled');
+    }
+}
+
 const sessions = new Map();
 const GEMINI_MODEL = 'gemini-2.0-flash';
 const DEFAULT_VOICE_ID = process.env.ELEVENLABS_VOICE_ID || 'cgSgspJ2msm6clMCkdW9';
+
+// Startup diagnostic
+console.log(`[ELEVENLABS] Config check → API_KEY: ${process.env.ELEVENLABS_API_KEY ? '✓ SET (' + process.env.ELEVENLABS_API_KEY.slice(0, 6) + '...)' : '✗ MISSING'} | VOICE_ID: ${process.env.ELEVENLABS_VOICE_ID || DEFAULT_VOICE_ID}`);
 
 const SYSTEM_INSTRUCTION = `Act as "SehatSaathi" — you are a female AI health companion with a warm, empathetic voice.
 
@@ -284,10 +299,15 @@ async function synthesizeMoodAudio(text, mood) {
         return { audioBase64: '', audioMimeType: '' };
     }
 
+    if (!_fetch) {
+        console.error('[ELEVENLABS] fetch is not available — cannot call ElevenLabs API');
+        return { audioBase64: '', audioMimeType: '' };
+    }
+
     console.log(`[ELEVENLABS] Requesting TTS | voice: ${voiceId} | model: eleven_multilingual_v2 | chars: ${safeText.length}`);
 
     try {
-        const response = await fetch(
+        const response = await _fetch(
             `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`,
             {
                 method: 'POST',
