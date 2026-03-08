@@ -25,6 +25,7 @@ Behavioral Guidelines:
 - Adaptive Tone: Match the user's energy. If they are joking, be witty. If they are in pain, be empathetic.
 - Always Listening: Keep responses engaging so the conversation never stops.
 - JSON Integrity: Never show raw code or JSON braces to the user. Always render information in a clean, human-friendly format in the 'text' field.
+- LANGUAGE MATCHING RULE: You MUST auto-detect the language of the user's prompt. If the user speaks in Hindi (either in Devanagari script or Romanized/Hinglish), your 'text' response MUST be 100% in Hindi (Devanagari script). If the user speaks in English, respond 100% in English. NEVER reply in English if the user asked in Hindi.
 
 CRITICAL HINDI LANGUAGE RULE:
 You are a FEMALE assistant. When responding in Hindi, ALWAYS use feminine verb conjugations:
@@ -212,6 +213,15 @@ function normalizeMood(value) {
     return 'Calm';
 }
 
+/**
+ * Strips markdown formatting characters (*, #, _) so TTS engines
+ * do not read them aloud as "asterisk" etc.
+ */
+function stripMarkdown(text) {
+    if (typeof text !== 'string') return '';
+    return text.replace(/[*#_]/g, '').replace(/\s{2,}/g, ' ').trim();
+}
+
 function extractJsonCandidate(rawText = '') {
     const direct = `${rawText || ''}`.trim();
     if (!direct) return '';
@@ -328,7 +338,11 @@ export async function voiceChat(req, res) {
         // Build personalized health context from DB
         const healthContext = userId ? await buildHealthContext(userId) : '';
 
-        const dynamicSystemPrompt = `${SYSTEM_INSTRUCTION}
+        const langRule = safeLanguage.startsWith('hi')
+            ? '\nCRITICAL: The frontend is set to Hindi. You MUST reply entirely in Hindi (Devanagari script). Do not use English.'
+            : '\nRespond entirely in English.';
+
+        const dynamicSystemPrompt = `${SYSTEM_INSTRUCTION}${langRule}
 
 ${healthContext ? `IMPORTANT: The following is the REAL, LIVE health data for this specific patient. When they ask about their vitals, medications, diabetes risk, or health trends — answer using this data directly. Be specific with numbers and dates.
 
@@ -364,7 +378,7 @@ ${healthContext}` : 'No personal health data available for this session. Provide
         let audioPayload = { audioBase64: '', audioMimeType: '' };
         if (process.env.ELEVENLABS_API_KEY) {
             try {
-                audioPayload = await synthesizeMoodAudio(text, mood);
+                audioPayload = await synthesizeMoodAudio(stripMarkdown(text), mood);
             } catch (ttsError) {
                 console.error('[GROQ-VOICE] TTS failed:', {
                     message: ttsError?.message,
@@ -415,9 +429,13 @@ export async function sendMessage(req, res) {
             content: entry.parts[0].text,
         }));
 
+        const langRule = safeLanguage.startsWith('hi')
+            ? '\nCRITICAL: The frontend is set to Hindi. You MUST reply entirely in Hindi (Devanagari script). Do not use English.'
+            : '\nRespond entirely in English.';
+
         const model = genAI.getGenerativeModel({
             model: GEMINI_MODEL,
-            systemInstruction: SYSTEM_INSTRUCTION,
+            systemInstruction: SYSTEM_INSTRUCTION + langRule,
         });
 
         const chat = model.startChat({
@@ -440,7 +458,7 @@ export async function sendMessage(req, res) {
 
         let audioPayload = { audioBase64: '', audioMimeType: '' };
         try {
-            audioPayload = await synthesizeMoodAudio(text, mood);
+            audioPayload = await synthesizeMoodAudio(stripMarkdown(text), mood);
         } catch (ttsError) {
             console.error('[ELEVENLABS] synthesis failed:', {
                 message: ttsError?.message,

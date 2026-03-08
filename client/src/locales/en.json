@@ -322,8 +322,110 @@
     "positiveNotes": "Positive Indicators"
   },
   "healthTools": {
-    "title": "Health Calculators",
-    "subtitle": "Track and calculate your health metrics",
+    "pageTitle": "Health Metrics Suite",
+    "pageSubtitle": "Evaluate physical vitals and conduct validated psychological screenings securely on your device.",
+    "clinicalUtilities": "Clinical Utilities",
+    "tabs": {
+      "physical": "Physical Vitals",
+      "mental": "Mental Health"
+    },
+    "saveToDashboard": "Save to Dashboard",
+    "saved": "Saved to clinical dashboard.",
+    "savedOffline": "Saved locally (Offline mode).",
+    "physical": {
+      "bmi": {
+        "title": "BMI Index",
+        "subtitle": "Body Mass Calculator",
+        "heightCm": "Height (cm)",
+        "weightKg": "Weight (kg)"
+      },
+      "bmr": {
+        "title": "Metabolic Rate",
+        "subtitle": "Daily Calorie Target",
+        "kcalDay": "Kcal / Day",
+        "age": "Age",
+        "heightCm": "Height (cm)",
+        "weightKg": "Weight (kg)",
+        "gender": {
+          "male": "Male",
+          "female": "Female"
+        },
+        "activity": {
+          "sedentary": "Sedentary",
+          "light": "Lightly Active",
+          "moderate": "Moderate",
+          "active": "Very Active"
+        }
+      },
+      "water": {
+        "title": "Hydration",
+        "subtitle": "Daily Water Target",
+        "litersDay": "Liters / Day",
+        "weightKg": "Weight (kg)",
+        "activity": {
+          "light": "Low Activity",
+          "moderate": "Moderate Activity",
+          "active": "High Activity"
+        },
+        "climate": {
+          "cold": "Cold Climate",
+          "normal": "Normal Climate",
+          "hot": "Hot Climate"
+        }
+      }
+    },
+    "mental": {
+      "screenerTabs": {
+        "phq9": "PHQ-9 (Depression)",
+        "gad7": "GAD-7 (Anxiety)"
+      },
+      "question": "Question",
+      "of": "of",
+      "previous": "Previous",
+      "next": "Next",
+      "clinicalIndication": "Clinical Indication",
+      "severityLabel": "Severity",
+      "recommendation": "Recommendation",
+      "retake": "Retake Assessment",
+      "options": {
+        "notAtAll": "Not at all",
+        "severalDays": "Several days",
+        "moreThanHalf": "More than half the days",
+        "nearlyEvery": "Nearly every day"
+      },
+      "severityLevels": {
+        "Minimal": "Minimal",
+        "Mild": "Mild",
+        "Moderate": "Moderate",
+        "Severe": "Severe"
+      },
+      "recommendations": {
+        "Minimal": "Maintain healthy routines and continue regular self-checks.",
+        "Mild": "Monitor symptoms weekly and strengthen sleep, activity, and social support habits.",
+        "Moderate": "Consider speaking with a licensed mental health professional for structured support.",
+        "Severe": "Seek professional care promptly. If you feel unsafe, contact emergency support immediately."
+      },
+      "phq9": {
+        "q0": "Little interest or pleasure in doing things",
+        "q1": "Feeling down, depressed, or hopeless",
+        "q2": "Trouble falling or staying asleep, or sleeping too much",
+        "q3": "Feeling tired or having little energy",
+        "q4": "Poor appetite or overeating",
+        "q5": "Feeling bad about yourself or that you are a failure",
+        "q6": "Trouble concentrating on things",
+        "q7": "Moving or speaking so slowly that others noticed, or being restless",
+        "q8": "Thoughts that you would be better off dead or hurting yourself"
+      },
+      "gad7": {
+        "q0": "Feeling nervous, anxious, or on edge",
+        "q1": "Not being able to stop or control worrying",
+        "q2": "Worrying too much about different things",
+        "q3": "Trouble relaxing",
+        "q4": "Being so restless that it is hard to sit still",
+        "q5": "Becoming easily annoyed or irritable",
+        "q6": "Feeling afraid as if something awful might happen"
+      }
+    },
     "bmi": {
       "title": "BMI Calculator",
       "height": "Height (cm)",

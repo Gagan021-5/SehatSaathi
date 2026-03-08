@@ -109,11 +109,26 @@ export default function ChatPage() {
             setMessages(prev => [...prev, { role: 'assistant', content: replyText }]);
 
             if (data?.audioBase64) {
-                // Signal mic to pause while AI speaks
-                notifySpeakingStarted();
-                await playAudio(data.audioBase64);
-                // After audio done → mic auto-restarts via notifyListeningDone()
-                notifyListeningDone();
+                try {
+                    notifySpeakingStarted();
+                    const audio = new Audio("data:audio/mp3;base64," + data.audioBase64);
+                    audioRef.current = audio;
+                    // CRITICAL: These events restart the mic loop!
+                    audio.onended = () => {
+                        audioRef.current = null;
+                        notifyListeningDone();
+                    };
+                    audio.onerror = () => {
+                        console.error("Audio playback failed, falling back to browser TTS");
+                        audioRef.current = null;
+                        speakText(replyText);
+                    };
+                    await audio.play();
+                } catch (err) {
+                    console.error("Audio initialization failed", err);
+                    audioRef.current = null;
+                    speakText(replyText);
+                }
             } else if (sessionActive) {
                 // Fallback: use browser TTS — speakText handles the loop internally
                 speakText(replyText);
