@@ -13,6 +13,11 @@ import {
 } from 'lucide-react';
 import PageTransition from '../components/common/PageTransition';
 import { useLanguage } from '../context/LanguageContext';
+import {
+    getRuralPatients,
+    createRuralPatient as apiCreatePatient,
+    updateRuralPatient as apiUpdatePatient,
+} from '../services/api';
 
 const STORAGE_KEY = 'sehat_saathi_offline_roster';
 const STATUS_NEEDS_REVIEW = 'needsReview';
@@ -23,6 +28,9 @@ const EMPTY_PATIENT = {
     age: '',
     gender: 'female',
     village: '',
+    pincode: '',
+    phoneNumber: '',
+    emergencyContact: '',
     complaint: '',
 };
 
@@ -61,11 +69,14 @@ function normalizeGender(gender) {
 function normalizePatient(patient) {
     if (!patient || typeof patient !== 'object') return null;
     return {
-        id: patient.id || `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        id: patient._id || patient.id || `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         name: String(patient.name || '').trim(),
         age: Number(patient.age) || '',
         gender: normalizeGender(patient.gender),
         village: String(patient.village || '').trim(),
+        pincode: String(patient.pincode || '').replace(/\D/g, '').slice(0, 6),
+        phoneNumber: String(patient.phoneNumber || '').replace(/\D/g, '').slice(-10),
+        emergencyContact: String(patient.emergencyContact || '').replace(/\D/g, '').slice(-10),
         complaint: String(patient.complaint || '').trim(),
         status: normalizeStatus(patient.status),
         vitals: patient.vitals || null,
@@ -91,19 +102,40 @@ export default function RuralOutreach() {
     const chunksRef = useRef([]);
     const streamRef = useRef(null);
 
+    // ── Fetch patients from backend on mount (fallback to localStorage offline) ──
     useEffect(() => {
-        try {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            if (!raw) return;
-            const parsed = JSON.parse(raw);
-            if (!Array.isArray(parsed)) return;
-            const normalized = parsed.map(normalizePatient).filter(Boolean);
-            setVillageRoster(normalized);
-        } catch (error) {
-            toast.error(t('ruralOutreach.toasts.failedLoad') || 'Failed to load offline roster');
+        let cancelled = false;
+        async function load() {
+            if (navigator.onLine) {
+                try {
+                    const { data } = await getRuralPatients();
+                    if (!cancelled) {
+                        const normalized = (data || []).map(normalizePatient).filter(Boolean);
+                        setVillageRoster(normalized);
+                        // Also cache to localStorage for offline access
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+                    }
+                    return;
+                } catch (err) {
+                    console.warn('[RuralOutreach] API fetch failed, falling back to localStorage:', err.message);
+                }
+            }
+            // Offline / API-failed fallback
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return;
+                const parsed = JSON.parse(raw);
+                if (!Array.isArray(parsed)) return;
+                if (!cancelled) setVillageRoster(parsed.map(normalizePatient).filter(Boolean));
+            } catch {
+                toast.error(t('ruralOutreach.toasts.failedLoad') || 'Failed to load offline roster');
+            }
         }
+        load();
+        return () => { cancelled = true; };
     }, []);
 
+    // ── Persist to localStorage as offline cache whenever roster changes ──
     useEffect(() => {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(villageRoster));
@@ -160,7 +192,7 @@ export default function RuralOutreach() {
         setSelectedPatientId('');
     }
 
-    function handleAddPatient(event) {
+    async function handleAddPatient(event) {
         event.preventDefault();
 
         const next = {
@@ -168,6 +200,9 @@ export default function RuralOutreach() {
             age: Number(patientForm.age),
             gender: patientForm.gender,
             village: patientForm.village.trim(),
+            pincode: patientForm.pincode.replace(/\D/g, '').slice(0, 6),
+            phoneNumber: patientForm.phoneNumber.replace(/\D/g, '').slice(-10),
+            emergencyContact: patientForm.emergencyContact.replace(/\D/g, '').slice(-10),
             complaint: patientForm.complaint.trim(),
         };
 
@@ -175,17 +210,38 @@ export default function RuralOutreach() {
             toast.error(t('ruralOutreach.toasts.invalidPatient'));
             return;
         }
+        if (!next.phoneNumber || next.phoneNumber.length !== 10) {
+            toast.error('Please enter a valid 10-digit phone number.');
+            return;
+        }
+        if (!next.pincode || next.pincode.length !== 6) {
+            toast.error('Please enter a valid 6-digit pincode.');
+            return;
+        }
 
-        const patient = {
-            id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        // Attempt to save to backend
+        if (navigator.onLine) {
+            try {
+                const { data } = await apiCreatePatient(next);
+                const patient = normalizePatient(data);
+                setVillageRoster((prev) => [patient, ...prev]);
+                toast.success(t('ruralOutreach.toasts.patientAdded'));
+                closeAddModal();
+                return;
+            } catch (err) {
+                const msg = err?.response?.data?.error || err.message;
+                toast.error(`Failed to save: ${msg}`);
+                return;
+            }
+        }
+
+        // Offline fallback — save locally
+        const patient = normalizePatient({
             ...next,
             status: STATUS_NEEDS_REVIEW,
             vitals: null,
             voiceNotes: [],
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-        };
-
+        });
         setVillageRoster((prev) => [patient, ...prev]);
         toast.success(t('ruralOutreach.toasts.patientAdded'));
         closeAddModal();
@@ -204,28 +260,37 @@ export default function RuralOutreach() {
         setShowVitalsModal(true);
     }
 
-    function handleSaveVitals(event) {
+    async function handleSaveVitals(event) {
         event.preventDefault();
         if (!selectedPatient) return;
 
-        const payload = {
+        const vitals = {
             bloodPressure: vitalsForm.bloodPressure.trim(),
             sugar: vitalsForm.sugar.trim(),
             temp: vitalsForm.temp.trim(),
-            updatedAt: new Date().toISOString(),
         };
 
-        if (!payload.bloodPressure || !payload.sugar || !payload.temp) {
+        if (!vitals.bloodPressure || !vitals.sugar || !vitals.temp) {
             toast.error(t('ruralOutreach.toasts.invalidVitals'));
             return;
         }
 
+        // Attempt to sync with backend
+        if (navigator.onLine && selectedPatient.id && !selectedPatient.id.includes('-')) {
+            try {
+                await apiUpdatePatient(selectedPatient.id, { vitals, status: 'cleared' });
+            } catch (err) {
+                console.warn('[RuralOutreach] Vitals sync failed:', err.message);
+            }
+        }
+
+        // Update local state regardless
         setVillageRoster((prev) =>
             prev.map((patient) =>
                 patient.id === selectedPatient.id
                     ? {
                         ...patient,
-                        vitals: payload,
+                        vitals,
                         status: STATUS_CLEARED,
                         updatedAt: new Date().toISOString(),
                     }
@@ -363,6 +428,11 @@ export default function RuralOutreach() {
                                     <p className="text-sm font-semibold text-slate-500">
                                         {t('ruralOutreach.card.village')}: {patient.village}
                                     </p>
+                                    {patient.phoneNumber ? (
+                                        <p className="text-xs font-semibold text-slate-400">
+                                            📱 {patient.phoneNumber}
+                                        </p>
+                                    ) : null}
                                 </div>
                                 <StatusBadge status={patient.status} t={t} />
                             </div>
@@ -384,8 +454,8 @@ export default function RuralOutreach() {
                                     type="button"
                                     onClick={() => toggleVoiceTriage(patient.id)}
                                     className={`flex h-12 items-center justify-center gap-2 rounded-xl border text-sm font-bold transition-all active:scale-[0.99] ${activeVoicePatientId === patient.id
-                                            ? 'border-rose-300 bg-rose-50 text-rose-700'
-                                            : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                                        ? 'border-rose-300 bg-rose-50 text-rose-700'
+                                        : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
                                         }`}
                                 >
                                     <Mic size={17} />{' '}
@@ -437,12 +507,43 @@ export default function RuralOutreach() {
                             </select>
                         </label>
                     </div>
-                    <Field
-                        label={t('ruralOutreach.fields.village')}
-                        value={patientForm.village}
-                        onChange={(value) => setPatientForm((prev) => ({ ...prev, village: value }))}
-                        placeholder={t('ruralOutreach.placeholders.village')}
-                    />
+                    <div className="grid grid-cols-2 gap-3">
+                        <Field
+                            label={t('ruralOutreach.fields.village')}
+                            value={patientForm.village}
+                            onChange={(value) => setPatientForm((prev) => ({ ...prev, village: value }))}
+                            placeholder={t('ruralOutreach.placeholders.village')}
+                        />
+                        <Field
+                            label={t('ruralOutreach.fields.pincode')}
+                            value={patientForm.pincode}
+                            onChange={(value) =>
+                                setPatientForm((prev) => ({ ...prev, pincode: value.replace(/\D/g, '').slice(0, 6) }))
+                            }
+                            inputMode="numeric"
+                            placeholder={t('ruralOutreach.placeholders.pincode')}
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <Field
+                            label={t('ruralOutreach.fields.phoneNumber')}
+                            value={patientForm.phoneNumber}
+                            onChange={(value) =>
+                                setPatientForm((prev) => ({ ...prev, phoneNumber: value.replace(/\D/g, '').slice(0, 10) }))
+                            }
+                            inputMode="tel"
+                            placeholder={t('ruralOutreach.placeholders.phoneNumber')}
+                        />
+                        <Field
+                            label={t('ruralOutreach.fields.emergencyContact')}
+                            value={patientForm.emergencyContact}
+                            onChange={(value) =>
+                                setPatientForm((prev) => ({ ...prev, emergencyContact: value.replace(/\D/g, '').slice(0, 10) }))
+                            }
+                            inputMode="tel"
+                            placeholder={t('ruralOutreach.placeholders.emergencyContact')}
+                        />
+                    </div>
                     <label className="block text-xs font-black uppercase tracking-[0.12em] text-slate-500">
                         {t('ruralOutreach.fields.chiefComplaint')}
                         <textarea
@@ -508,8 +609,8 @@ function SyncBadge({ status, t }) {
     return (
         <div
             className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-black uppercase tracking-[0.14em] ${isOnline
-                    ? 'border-emerald-300/40 bg-emerald-400/20 text-emerald-100'
-                    : 'border-amber-300/40 bg-amber-400/20 text-amber-100'
+                ? 'border-emerald-300/40 bg-emerald-400/20 text-emerald-100'
+                : 'border-amber-300/40 bg-amber-400/20 text-amber-100'
                 }`}
         >
             {isOnline ? <Wifi size={13} /> : <WifiOff size={13} />}

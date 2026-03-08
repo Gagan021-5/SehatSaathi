@@ -59,6 +59,13 @@ function toRuralPatientView(patient) {
         name: payload.name,
         phoneNumber: payload.phoneNumber,
         pincode: payload.pincode,
+        emergencyContact: payload.emergencyContact || '',
+        age: payload.age ?? null,
+        gender: payload.gender || 'female',
+        village: payload.village || '',
+        complaint: payload.complaint || '',
+        status: payload.status || 'needsReview',
+        vitals: payload.vitals || null,
         registeredBy: payload.registeredBy,
         activeReminders: payload.activeReminders || [],
         createdAt: payload.createdAt,
@@ -186,6 +193,13 @@ export async function createRuralPatient(req, res) {
         const name = `${req.body?.name || ''}`.trim();
         const phoneNumber = normalizePhoneNumber(req.body?.phoneNumber);
         const pincode = normalizePincode(req.body?.pincode);
+        const emergencyContact = normalizePhoneNumber(req.body?.emergencyContact) || '';
+
+        // Camp / outreach fields (optional)
+        const age = Number(req.body?.age) || null;
+        const gender = ['male', 'female', 'other'].includes(req.body?.gender) ? req.body.gender : 'female';
+        const village = `${req.body?.village || ''}`.trim();
+        const complaint = `${req.body?.complaint || ''}`.trim();
 
         if (!name || !phoneNumber || !pincode) {
             return res.status(400).json({ error: 'name, 10-digit phoneNumber, and 6-digit pincode are required' });
@@ -195,6 +209,12 @@ export async function createRuralPatient(req, res) {
             name,
             phoneNumber,
             pincode,
+            emergencyContact,
+            age,
+            gender,
+            village,
+            complaint,
+            status: 'needsReview',
             registeredBy: user._id,
             activeReminders: [],
         });
@@ -231,6 +251,30 @@ export async function updateRuralPatient(req, res) {
             const pincode = normalizePincode(req.body.pincode);
             if (!pincode) return res.status(400).json({ error: 'pincode must be 6 digits' });
             updates.pincode = pincode;
+        }
+
+        if (req.body?.emergencyContact !== undefined) {
+            updates.emergencyContact = normalizePhoneNumber(req.body.emergencyContact) || '';
+        }
+
+        // Camp / outreach fields
+        if (req.body?.village !== undefined) updates.village = `${req.body.village}`.trim();
+        if (req.body?.complaint !== undefined) updates.complaint = `${req.body.complaint}`.trim();
+        if (req.body?.age !== undefined) updates.age = Number(req.body.age) || null;
+        if (req.body?.gender !== undefined && ['male', 'female', 'other'].includes(req.body.gender)) {
+            updates.gender = req.body.gender;
+        }
+        if (req.body?.status !== undefined && ['needsReview', 'cleared'].includes(req.body.status)) {
+            updates.status = req.body.status;
+        }
+
+        // Vitals sub-document
+        if (req.body?.vitals && typeof req.body.vitals === 'object') {
+            updates.vitals = {
+                bloodPressure: `${req.body.vitals.bloodPressure || ''}`.trim(),
+                sugar: `${req.body.vitals.sugar || ''}`.trim(),
+                temp: `${req.body.vitals.temp || ''}`.trim(),
+            };
         }
 
         if (!Object.keys(updates).length) {

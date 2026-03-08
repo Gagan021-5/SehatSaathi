@@ -41,6 +41,25 @@ const ruralPatientSchema = new mongoose.Schema(
                 message: 'pincode must be exactly 6 digits.',
             },
         },
+        emergencyContact: {
+            type: String,
+            default: '',
+            index: true,
+            validate: {
+                validator: (value) => !value || PHONE_REGEX.test(value),
+                message: 'emergencyContact must be exactly 10 digits.',
+            },
+        },
+        age: { type: Number, default: null },
+        gender: { type: String, enum: ['male', 'female', 'other'], default: 'female' },
+        village: { type: String, default: '', trim: true },
+        complaint: { type: String, default: '', trim: true },
+        status: { type: String, enum: ['needsReview', 'cleared'], default: 'needsReview' },
+        vitals: {
+            bloodPressure: { type: String, default: '' },
+            sugar: { type: String, default: '' },
+            temp: { type: String, default: '' },
+        },
         registeredBy: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
