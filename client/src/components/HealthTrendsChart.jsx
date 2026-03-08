@@ -70,7 +70,8 @@ export function formatRecordsForTrends(records, vitalTypes) {
       grouped.set(dateKey, { date: dateKey });
     }
 
-    const numericValue = parseVitalValue(record.value, record.type);
+    const coerced = typeof record.value === 'string' ? Number(record.value) : record.value;
+    const numericValue = parseVitalValue(coerced, record.type);
     if (numericValue == null) continue;
     grouped.get(dateKey)[record.type] = numericValue;
   }
@@ -265,11 +266,10 @@ export default function HealthTrendsChart({ records = [], vitalTypes = [] }) {
               key={vital.type}
               type="button"
               onClick={() => toggleTypeVisibility(vital.type)}
-              className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold transition-all ${
-                active
+              className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold transition-all ${active
                   ? "border-white/80 bg-white/80 text-zinc-900 shadow-sm"
                   : "border-white/40 bg-white/35 text-zinc-500"
-              }`}
+                }`}
             >
               <span
                 className="h-2.5 w-2.5 rounded-full"
@@ -331,7 +331,7 @@ export default function HealthTrendsChart({ records = [], vitalTypes = [] }) {
                 dataKey={vital.type}
                 stroke={vital.stroke}
                 strokeWidth={3}
-                dot={false}
+                dot={{ r: 4, fill: vital.stroke, strokeWidth: 2, stroke: '#fff' }}
                 activeDot={{
                   r: 6,
                   strokeWidth: 2,

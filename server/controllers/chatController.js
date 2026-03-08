@@ -188,6 +188,14 @@ async function buildHealthContext(userId) {
                 lines.push(`  ${med.medicineName} — ${med.dosage} at ${(med.times || []).join(', ')}${med.withFood ? ' (with food)' : ''}`);
             }
         }
+        // Clinical profile (RAG injection)
+        if (user?.clinicalProfile) {
+            const cp = user.clinicalProfile;
+            if (cp.diabetesRiskScore != null || cp.activePrescriptions?.length) {
+                lines.push('\n--- Clinical Risk Profile ---');
+                lines.push(`CRITICAL PATIENT CONTEXT: Patient's Diabetes Risk Score is ${cp.diabetesRiskScore ?? 'N/A'}%. Active Prescriptions: ${cp.activePrescriptions?.join(', ') || 'None'}. Use this exact data if asked.`);
+            }
+        }
 
         lines.push('=== END OF PATIENT CONTEXT ===');
         return lines.join('\n');

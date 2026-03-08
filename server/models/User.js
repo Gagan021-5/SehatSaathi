@@ -23,6 +23,10 @@ const userSchema = new mongoose.Schema({
         validate: [arr => arr.length <= 3, 'Maximum 3 emergency contacts allowed'],
         default: [],
     },
+    clinicalProfile: {
+        diabetesRiskScore: { type: Number, default: null },
+        activePrescriptions: { type: [String], default: [] },
+    },
     createdAt: { type: Date, default: Date.now },
 });
 

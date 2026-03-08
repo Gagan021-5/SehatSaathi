@@ -14,6 +14,7 @@ import hospitalRoutes from "./routes/hospitalRoutes.js";
 import medicineRoutes from "./routes/medicineRoutes.js";
 import predictionRoutes from "./routes/predictionRoutes.js";
 import prescriptionRoutes from "./routes/prescriptionRoutes.js";
+import seedRoutes from "./routes/seedClinicalProfile.js";
 import smsRoutes from "./routes/smsRoutes.js";
 import { startSmsCron } from "./services/smsCron.js";
 
@@ -43,6 +44,7 @@ app.use("/api/medicines", medicineRoutes);
 app.use("/api/family", familyRoutes);
 app.use("/api/health-tools", healthToolRoutes);
 app.use("/api/sms", smsRoutes);
+app.use("/api/seed", seedRoutes);
 
 app.get("/api/health-check", (_req, res) => {
   res.json({ status: "ok", service: "SehatSaathi API", port: PORT });
