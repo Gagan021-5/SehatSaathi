@@ -108,6 +108,10 @@ export default function ChatPage() {
             const replyText = data?.text || '';
             setMessages(prev => [...prev, { role: 'assistant', content: replyText }]);
 
+            if (replyText) {
+                setLoading(false);
+            }
+
             if (data?.audioBase64) {
                 try {
                     notifySpeakingStarted();

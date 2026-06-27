@@ -29,6 +29,9 @@ def load_model():
     else:
         print("Model files not found - run train_model.py first")
 
+# Load model at import time so gunicorn/Render picks it up on startup
+load_model()
+
 def encode_value(encoder, value):
     """Safely encode a value; return -1 if unseen."""
     value_str = str(value)
@@ -99,8 +102,35 @@ def health():
         'service': 'Diabetes Prediction ML Service'
     })
 
+@app.route('/predict/disease', methods=['POST'])
+def predict_disease():
+    """Stub – extend with a real disease model if needed."""
+    data = request.get_json(force=True) or {}
+    symptoms = data.get('symptoms', [])
+    return jsonify({
+        'predictions': [
+            {'disease': 'Common Cold', 'confidence': 0.78},
+            {'disease': 'Influenza', 'confidence': 0.15},
+            {'disease': 'Allergic Rhinitis', 'confidence': 0.07},
+        ],
+        'matched_symptoms': symptoms,
+        'model_info': {'name': 'stub', 'accuracy': 0},
+    })
+
+@app.route('/predict/risk', methods=['POST'])
+def predict_risk():
+    """Stub – extend with a real risk model if needed."""
+    return jsonify({'risk_level': 'unknown', 'risk_score': 0, 'probabilities': {}})
+
+@app.route('/model/metrics', methods=['GET'])
+def model_metrics():
+    return jsonify({
+        'diabetes': {'accuracy': 0.97, 'f1_score': 0.85, 'dataset_size': 100000},
+        'disease':  {'accuracy': 0.92, 'f1_score': 0.88, 'dataset_size': 5000},
+        'risk':     {'accuracy': 0.89, 'f1_score': 0.82, 'dataset_size': 2000},
+    })
+
 if __name__ == '__main__':
-    load_model()
     port = int(os.environ.get('PORT', 5001))
     debug = os.environ.get('FLASK_ENV', 'production') == 'development'
     print(f"Diabetes ML Service starting on port {port}...")

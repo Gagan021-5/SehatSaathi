@@ -10,6 +10,7 @@ import {
     Wifi,
     WifiOff,
     X,
+    Trash2,
 } from 'lucide-react';
 import PageTransition from '../components/common/PageTransition';
 import { useLanguage } from '../context/LanguageContext';
@@ -17,6 +18,7 @@ import {
     getRuralPatients,
     createRuralPatient as apiCreatePatient,
     updateRuralPatient as apiUpdatePatient,
+    deleteRuralPatient as apiDeletePatient,
 } from '../services/api';
 
 const STORAGE_KEY = 'sehat_saathi_offline_roster';
@@ -302,6 +304,23 @@ export default function RuralOutreach() {
         closeVitalsModal();
     }
 
+    async function handleDeletePatient(patientId) {
+        if (!window.confirm(t('ruralOutreach.confirmDelete') || 'Are you sure you want to delete this patient?')) return;
+
+        // Attempt to sync with backend
+        if (navigator.onLine && !patientId.toString().includes('-')) {
+            try {
+                await apiDeletePatient(patientId);
+            } catch (err) {
+                toast.error(t('ruralOutreach.toasts.deleteFailed') || 'Failed to delete patient');
+                return;
+            }
+        }
+
+        setVillageRoster((prev) => prev.filter((p) => p.id !== patientId));
+        toast.success(t('ruralOutreach.toasts.patientDeleted') || 'Patient deleted');
+    }
+
     async function toggleVoiceTriage(patientId) {
         if (activeVoicePatientId && activeVoicePatientId === patientId) {
             recorderRef.current?.stop();
@@ -434,7 +453,17 @@ export default function RuralOutreach() {
                                         </p>
                                     ) : null}
                                 </div>
-                                <StatusBadge status={patient.status} t={t} />
+                                <div className="flex flex-col items-end gap-2">
+                                    <StatusBadge status={patient.status} t={t} />
+                                    <button
+                                        type="button"
+                                        onClick={() => handleDeletePatient(patient.id)}
+                                        className="rounded-full bg-rose-50 p-2 text-rose-500 transition-colors hover:bg-rose-100 hover:text-rose-600 active:scale-95 z-20 relative"
+                                        title={t('ruralOutreach.buttons.deletePatient') || 'Delete Patient'}
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
                             </div>
 
                             <p className="mt-3 rounded-xl bg-slate-50 px-3 py-2 text-sm text-slate-600 ring-1 ring-slate-200/80">

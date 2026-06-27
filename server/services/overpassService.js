@@ -2,9 +2,16 @@ import axios from 'axios';
 
 const OVERPASS_URLS = [
     'https://overpass-api.de/api/interpreter',
-    'https://overpass.kumi.systems/api/interpreter',
+    'https://lz4.overpass-api.de/api/interpreter',
     'https://overpass.openstreetmap.fr/api/interpreter',
+    'https://overpass.kumi.systems/api/interpreter',
 ];
+
+const OVERPASS_HEADERS = {
+    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+    'User-Agent': 'SehatSaathi/1.0 (healthcare-app; contact@sehatsaathi.in)',
+    Accept: 'application/json',
+};
 
 function haversine(lat1, lng1, lat2, lng2) {
     const R = 6371;
@@ -108,17 +115,26 @@ export async function searchPHCFacilities(lat, lng, radius = 10000) {
 
 async function postOverpass(query) {
     let lastError;
+    const encoded = new URLSearchParams({ data: query }).toString();
+
     for (const url of OVERPASS_URLS) {
         try {
-            return await axios.post(
-                url,
-                `data=${encodeURIComponent(query)}`,
-                { headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, timeout: 12000 }
-            );
+            const response = await axios.post(url, encoded, {
+                headers: OVERPASS_HEADERS,
+                timeout: 20000,
+                validateStatus: () => true,
+            });
+
+            if (response.status >= 200 && response.status < 400) {
+                return response;
+            }
+
+            lastError = new Error(`Overpass provider responded with ${response.status}`);
         } catch (err) {
             lastError = err;
         }
     }
+
     throw lastError || new Error('Overpass providers unavailable');
 }
 

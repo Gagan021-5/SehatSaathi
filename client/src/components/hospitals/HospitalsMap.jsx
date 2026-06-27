@@ -11,8 +11,10 @@ import {
 import { searchHospitals } from '../../services/api'; // Ensure this matches your actual api path
 
 const OVERPASS_FALLBACK_URLS = [
-    'https://overpass.kumi.systems/api/interpreter',
+    'https://overpass-api.de/api/interpreter',
     'https://lz4.overpass-api.de/api/interpreter',
+    'https://overpass.openstreetmap.fr/api/interpreter',
+    'https://overpass.kumi.systems/api/interpreter',
 ];
 const DEFAULT_CENTER = { lat: 28.6139, lng: 77.209 };
 const AUTO_REFRESH_MS = 30000;
@@ -150,9 +152,21 @@ function buildOverpassQuery(bounds) {
 
 async function fetchOverpassFallback(bounds, signal) {
     const query = buildOverpassQuery(bounds);
+    const body = new URLSearchParams({ data: query }).toString();
+
     for (const url of OVERPASS_FALLBACK_URLS) {
         try {
-            const response = await fetch(url, { method: 'POST', body: `data=${encodeURIComponent(query)}`, signal });
+            const response = await fetch(url, {
+                method: 'POST',
+                body,
+                signal,
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                    'User-Agent': 'SehatSaathi/1.0 (healthcare-app; contact@sehatsaathi.in)',
+                    Accept: 'application/json',
+                },
+            });
+
             if (!response.ok) continue;
             const data = await response.json();
             const results = dedupePlaces((data.elements || []).map(mapOverpassElement).filter(Boolean));

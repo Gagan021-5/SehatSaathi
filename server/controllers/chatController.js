@@ -236,6 +236,25 @@ function normalizeMood(value) {
     return 'Calm';
 }
 
+export function buildFallbackReply(userMessage = '', language = 'en') {
+    const text = `${userMessage || ''}`.trim();
+    const isHindi = `${language || 'en'}`.toLowerCase().startsWith('hi');
+    const lower = text.toLowerCase();
+    const emergencyKeywords = /(chest pain|severe bleeding|breathing|stroke|faint|unconscious|heart attack|seizure|burn|accident|pain|bleeding)/i;
+
+    if (emergencyKeywords.test(lower)) {
+        return isHindi
+            ? 'मैं आपकी सुरक्षा के लिए तुरंत 112 या 102 पर संपर्क करने और निकटतम अस्पताल जाने की सलाह देती हूँ। यदि स्थिति गंभीर हो, तुरंत चिकित्सा सहायता लें।'
+            : 'For your safety, please contact emergency services immediately at 112/102 or go to the nearest hospital if this is severe.';
+    }
+
+    if (isHindi) {
+        return `मैं अभी स्थानीय सहायक मोड में हूँ। आपने कहा: "${text || 'कुछ जानकारी'}"। कृपया थोड़ी और जानकारी दें, या कुछ देर बाद फिर से कोशिश करें।`;
+    }
+
+    return `I’m currently running in local fallback mode. You said: "${text || 'something'}". Please share a bit more detail or try again shortly.`;
+}
+
 /**
  * Strips markdown formatting characters (*, #, _) so TTS engines
  * do not read them aloud as "asterisk" etc.
@@ -357,9 +376,15 @@ export async function voiceChat(req, res) {
 
         if (!userMessage) return res.status(400).json({ error: 'Message is required' });
         if (!groq) {
-            return res.status(500).json({
-                success: false,
-                error: 'GROQ_API_KEY is not configured on server',
+            const fallbackText = buildFallbackReply(userMessage, safeLanguage);
+            return res.json({
+                success: true,
+                sessionId: sessionId || `session_${Date.now()}`,
+                mood: 'Calm',
+                text: fallbackText,
+                response: fallbackText,
+                audioBase64: '',
+                audioMimeType: '',
             });
         }
 
@@ -440,9 +465,15 @@ export async function sendMessage(req, res) {
 
         if (!userMessage) return res.status(400).json({ error: 'Message is required' });
         if (!genAI) {
-            return res.status(500).json({
-                success: false,
-                error: 'GEMINI_API_KEY is not configured on server',
+            const fallbackText = buildFallbackReply(userMessage, safeLanguage);
+            return res.json({
+                success: true,
+                sessionId: sessionId || `session_${Date.now()}`,
+                mood: 'Calm',
+                text: fallbackText,
+                response: fallbackText,
+                audioBase64: '',
+                audioMimeType: '',
             });
         }
 

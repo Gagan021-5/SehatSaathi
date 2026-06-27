@@ -2,10 +2,15 @@ import axios from 'axios';
 
 const ML_URL = process.env.ML_SERVICE_URL || 'https://mlgeek.onrender.com';
 
-// Warm up ML service on server start (non-blocking — Render free tier cold start)
-axios.get(`${ML_URL}/health`, { timeout: 30000 })
-    .then(() => console.log('[ML] Service warm and ready'))
-    .catch(() => console.warn('[ML] Service cold/offline — fallback mode active'));
+// Keep-alive ping: prevents Render free-tier from sleeping the ML service.
+// Runs immediately on server start, then every 10 minutes.
+function pingMLService() {
+    axios.get(`${ML_URL}/health`, { timeout: 30000 })
+        .then(() => console.log('[ML] Service warm and ready'))
+        .catch(() => console.warn('[ML] Service cold/offline — fallback mode active'));
+}
+pingMLService();
+setInterval(pingMLService, 10 * 60 * 1000); // every 10 minutes
 
 /**
  * Rule-based diabetes risk estimate using ADA / WHO clinical thresholds.
@@ -53,7 +58,7 @@ function ruleBasedDiabetes(data) {
 
 export async function predictDiabetes(data) {
     try {
-        const res = await axios.post(`${ML_URL}/predict`, data, { timeout: 30000 });
+        const res = await axios.post(`${ML_URL}/predict`, data, { timeout: 45000 });
         return res.data;
     } catch (err) {
         console.warn('[ML] diabetes predict failed, using rule-based fallback:', err.message);

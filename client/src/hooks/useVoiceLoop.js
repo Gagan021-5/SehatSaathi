@@ -107,6 +107,7 @@ export function useVoiceLoop({ lang = 'en-US', onSpeechResult }) {
                     transcriptRef.current = '';
                     clearDebounce();
                     setIsListening(false);
+                    setIsSpeaking(true);
                     // Stop recognizer before handing off (prevents "onend" restart race)
                     destroyRecognizer();
                     if (onSpeechResultRef.current) onSpeechResultRef.current(finalTranscript);
